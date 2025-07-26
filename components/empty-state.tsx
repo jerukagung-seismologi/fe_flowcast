@@ -84,7 +84,7 @@ export function EmptyState({ type, title, description, actionLabel, onAction }: 
 
   return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <Card className="w-full max-w-md mx-auto text-center shadow-lg border-2 border-dashed border-gray-300">
+      <Card className="w-full max-w-md mx-auto text-center shadow-lg border-2 border-line border-gray-400">
         <CardHeader className="pb-4">
           <div className="flex justify-center mb-4">{getIcon()}</div>
           <CardTitle className="text-xl font-semibold text-gray-700">{finalTitle}</CardTitle>
@@ -93,7 +93,7 @@ export function EmptyState({ type, title, description, actionLabel, onAction }: 
         <CardContent className="pt-0">
           <Button
             onClick={handleAction}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
+            className="bg-emerald-600 hover:bg-blue-600 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 transform hover:scale-105"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             {finalActionLabel}

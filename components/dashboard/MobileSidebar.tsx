@@ -14,10 +14,10 @@ export function MobileSidebar({ sidebarOpen, setSidebarOpen, navigation }: Mobil
     <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? "block" : "hidden"}`}>
       <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
       <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
-        <div className="flex h-16 items-center justify-between px-4">
+        <div className="flex h-16 items-center justify-between px-4  bg-emerald-700">
           <div className="flex items-center">
-            <CloudRain className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-lg font-bold text-gray-900">Infraseis Hidrometeorologi</span>
+            <CloudRain className="h-8 w-8 text-white" />
+            <span className="ml-2 text-lg font-bold text-white">Hidrometeorologi Portal</span>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)}>
             <X className="h-5 w-5" />
@@ -28,7 +28,7 @@ export function MobileSidebar({ sidebarOpen, setSidebarOpen, navigation }: Mobil
             <Link
               key={item.name}
               href={item.href}
-              className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-blue-200 hover:text-blue-800 transition-all duration-2000"
               onClick={() => setSidebarOpen(false)}
             >
               <item.icon className="mr-3 h-5 w-5" />

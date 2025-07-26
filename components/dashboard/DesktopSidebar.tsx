@@ -19,9 +19,9 @@ export function DesktopSidebar({ navigation }: DesktopSidebarProps) {
             <Link
               key={item.name}
               href={item.href}
-              className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gradient-to-r hover:from-blue-100 hover:to-purple-100 hover:text-blue-800 transition-all duration-200"
+              className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-blue-200 hover:text-blue-800 transition-all duration-200"
             >
-              <item.icon className="mr-3 h-5 w-5 group-hover:text-blue-600" />
+              <item.icon className="mr-3 h-5 w-5 group-hover:text-blue-700" />
               {item.name}
             </Link>
           ))}
