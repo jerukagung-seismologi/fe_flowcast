@@ -7,8 +7,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Infraseis Hidrometeorologi",
-  description: "Platform intelijen hidrometeorologi cerdas dengan analisis tren canggih",
-  generator: "v0.dev",
+  description: "Platform intelijen hidrometeorologi cerdas dengan analisis tren canggih"
 }
 
 export default function RootLayout({

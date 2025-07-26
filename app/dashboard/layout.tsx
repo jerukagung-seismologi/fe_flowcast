@@ -6,9 +6,17 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { CloudRain, LayoutDashboard, Settings, FileText, BarChart3, LogOut, Menu, X } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { CloudRain, LayoutDashboard, Settings, FileText, BarChart3, LogOut, Menu, X, User } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { signOutUser } from "@/lib/auth"
+import { signOutUser } from "@/lib/FetchingAuth"
 import { useState } from "react"
 
 export default function DashboardLayout({
@@ -51,7 +59,7 @@ export default function DashboardLayout({
   }
 
   const navigation = [
-    { name: "Dasbor", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Beranda", href: "/dashboard", icon: LayoutDashboard },
     { name: "Perangkat", href: "/dashboard/devices", icon: Settings },
     { name: "Grafik", href: "/dashboard/charts", icon: BarChart3 },
     { name: "Log", href: "/dashboard/logs", icon: FileText },
@@ -125,10 +133,35 @@ export default function DashboardLayout({
               </h1>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Keluar
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-x-2">
+                    <User className="h-5 w-5 text-gray-600" />
+                    <span className="hidden md:inline">{profile?.displayName || user.email?.split("@")[0]}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profil</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Pengaturan</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Keluar</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

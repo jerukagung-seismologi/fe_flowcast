@@ -35,10 +35,13 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false)
 
   const loadDashboardData = async () => {
-    if (!user?.uid) return
+    if (!user?.uid) {
+      setLoading(false)
+      return
+    }
 
     try {
-      setLoading(true)
+      // No need to set loading to true here as it's handled by the initial state and refresh handler
       const [devicesData, statsData, alertsData, weatherData] = await Promise.all([
         fetchDevices(user.uid),
         fetchDeviceStats(user.uid),
@@ -64,6 +67,7 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    setLoading(true)
     loadDashboardData()
   }, [user?.uid])
 
@@ -90,8 +94,8 @@ export default function DashboardPage() {
     )
   }
 
-  // Show empty state if no devices
-  if (!devices || devices.length === 0) {
+  // Show empty state if no devices after loading
+  if (!loading && (!devices || devices.length === 0)) {
     return <EmptyState type="dashboard" />
   }
 

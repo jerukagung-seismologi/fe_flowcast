@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { type User, onAuthStateChanged } from "firebase/auth"
 import { auth } from "@/lib/FirebaseConfig"
-import { getUserProfile, type UserProfile } from "@/lib/auth"
+import { getUserProfile, type UserProfile } from "@/lib/FetchingAuth"
 
 export interface AuthState {
   user: User | null

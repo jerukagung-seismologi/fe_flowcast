@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CloudRain, Eye, EyeOff, CheckCircle, XCircle, User, Mail, Lock, Loader2 } from "lucide-react"
-import { signInWithEmail, signUpWithEmail } from "@/lib/auth"
+import { signInWithEmail, signUpWithEmail } from "@/lib/FetchingAuth"
 
 interface FormData {
   name: string

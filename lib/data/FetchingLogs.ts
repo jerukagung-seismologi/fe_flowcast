@@ -1,4 +1,4 @@
-import { ref, push, get, query, limitToLast, orderByKey } from "firebase/database"
+import { ref, set, get, query, limitToLast, orderByKey } from "firebase/database"
 import { rtdb } from "@/lib/FirebaseConfig"
 
 export interface LogEvent {
@@ -123,13 +123,14 @@ export async function addLogEvent(
   deviceName: string,
 ): Promise<void> {
   try {
-    const logsRef = ref(rtdb, `logs/${userId}`)
-    await push(logsRef, {
+    const timestamp = Date.now()
+    const logRef = ref(rtdb, `logs/${userId}/${timestamp}`)
+    await set(logRef, {
       deviceId,
       type,
       message,
       severity,
-      timestamp: Date.now(),
+      timestamp: timestamp,
       device: deviceName,
       userId,
     })
