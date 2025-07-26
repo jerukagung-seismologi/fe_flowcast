@@ -184,7 +184,7 @@ export default function LandingPage() {
               <div className="p-2 bg-blue-600 rounded-lg">
                 <CloudRain className="h-6 w-6 text-white" />
               </div>
-              <span className="ml-3 text-xl font-bold text-gray-900">Infraseis Hidrometeorologi</span>
+              <span className="ml-3 text-xl font-bold text-gray-900">Portal Hidrometeorologi</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/login">

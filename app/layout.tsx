@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Infraseis Hidrometeorologi",
   description: "Platform intelijen hidrometeorologi cerdas dengan analisis tren canggih",
   themeColor: "#10b981",
+  icons: {
+    icon: "/logo.png",
+  },
 }
 
 export default function RootLayout({

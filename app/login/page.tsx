@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Image from "next/image"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CloudRain, Eye, EyeOff, CheckCircle, XCircle, User, Mail, Lock, Loader2 } from "lucide-react"
+import { Eye, EyeOff, CheckCircle, XCircle, User, Mail, Lock, Loader2 } from "lucide-react"
 import { signInWithEmail, signUpWithEmail } from "@/lib/FetchingAuth"
 
 interface FormData {
@@ -225,10 +226,8 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-50 to-cyan-100 p-4">
       <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-2">
-          <div className="flex justify-between items-center mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg">
-              <CloudRain className="h-8 w-8 text-white" />
-            </div>
+          <div className="flex justify-center items-center mb-4">
+            <Image src="/logo.png" alt="Infraseis Logo" width={80} height={80} className="rounded-full" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">Infraseis Hidrometeorologi</CardTitle>
           <CardDescription className="text-gray-600">
