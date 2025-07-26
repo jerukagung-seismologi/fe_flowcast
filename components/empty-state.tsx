@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusIcon, DatabaseIcon, BarChart3Icon, FileTextIcon } from "lucide-react"
+import { PlusIcon, UnplugIcon, BarChart3Icon, FileTextIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface EmptyStateProps {
@@ -19,15 +19,15 @@ export function EmptyState({ type, title, description, actionLabel, onAction }: 
   const getIcon = () => {
     switch (type) {
       case "dashboard":
-        return <DatabaseIcon className="h-16 w-16 text-gray-400" />
+        return <UnplugIcon className="h-16 w-16 text-gray-400" />
       case "devices":
-        return <DatabaseIcon className="h-16 w-16 text-gray-400" />
+        return <UnplugIcon className="h-16 w-16 text-gray-400" />
       case "charts":
         return <BarChart3Icon className="h-16 w-16 text-gray-400" />
       case "logs":
         return <FileTextIcon className="h-16 w-16 text-gray-400" />
       default:
-        return <DatabaseIcon className="h-16 w-16 text-gray-400" />
+        return <UnplugIcon className="h-16 w-16 text-gray-400" />
     }
   }
 
