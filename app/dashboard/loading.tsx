@@ -1,7 +1,8 @@
-export default function Loading() {
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
-  );
-}
+const Loading = () => (
+  <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
+    <div className="w-12 h-12 border-8 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+    <p className="ml-4 text-gray-700 text-2xl">Memuat Halaman...</p>
+  </div>
+);
+
+export default Loading;

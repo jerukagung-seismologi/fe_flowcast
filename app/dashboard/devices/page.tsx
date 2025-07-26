@@ -29,6 +29,7 @@ import { AddDeviceDialog } from "@/components/device/AddDeviceDialog"
 import { EditDeviceDialog } from "@/components/device/EditDeviceDialog"
 import { DeviceTokenDialog } from "@/components/device/DeviceTokenDialog"
 import { DeleteConfirmationDialog } from "@/components/device/DeleteConfirmationDialog"
+import LoadingSpinner from "@/components/LoadingSpinner"
 
 export default function DevicesPage() {
   const { user } = useAuth()
@@ -193,11 +194,7 @@ export default function DevicesPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   // Show empty state if no devices

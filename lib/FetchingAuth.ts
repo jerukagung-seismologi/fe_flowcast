@@ -3,18 +3,20 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
+  updatePassword,
+  deleteUser,
   type User,
   type AuthError,
 } from "firebase/auth"
-import { doc, setDoc, getDoc } from "firebase/firestore"
+import { doc, setDoc, getDoc, Timestamp, updateDoc, deleteDoc } from "firebase/firestore"
 import { auth, db } from "./FirebaseConfig"
 
 export interface UserProfile {
   uid: string
   email: string
   displayName: string
-  createdAt: Date
-  lastLoginAt: Date
+  createdAt: Date | Timestamp
+  lastLoginAt: Date | Timestamp
   role: "admin" | "user"
 }
 
@@ -111,6 +113,68 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
   } catch (error) {
     console.error("Error getting user profile:", error)
     return null
+  }
+}
+
+// Update user profile
+export const updateUserProfileData = async (uid: string, displayName: string): Promise<void> => {
+  try {
+    const user = auth.currentUser
+    if (!user || user.uid !== uid) {
+      throw new Error("User not authenticated or permission denied.")
+    }
+
+    // Update Firebase Auth profile
+    await updateProfile(user, { displayName })
+
+    // Update Firestore profile
+    const userDocRef = doc(db, "users", uid)
+    await updateDoc(userDocRef, { displayName })
+  } catch (error) {
+    const authError = error as AuthError
+    throw new Error(getAuthErrorMessage(authError.code))
+  }
+}
+
+// Update user password
+export const updateUserPassword = async (newPassword: string): Promise<void> => {
+  try {
+    const user = auth.currentUser
+    if (!user) {
+      throw new Error("User not authenticated.")
+    }
+    await updatePassword(user, newPassword)
+  } catch (error) {
+    const authError = error as AuthError
+    // This error often means the user needs to re-authenticate
+    if (authError.code === "auth/requires-recent-login") {
+      throw new Error("This operation is sensitive and requires recent authentication. Please sign out and sign in again before retrying.")
+    }
+    throw new Error(getAuthErrorMessage(authError.code))
+  }
+}
+
+// Delete user account
+export const deleteUserAccount = async (): Promise<void> => {
+  try {
+    const user = auth.currentUser
+    if (!user) {
+      throw new Error("User not authenticated.")
+    }
+    const uid = user.uid
+
+    // Delete Firestore document first
+    const userDocRef = doc(db, "users", uid)
+    await deleteDoc(userDocRef)
+
+    // Delete user from Firebase Auth
+    await deleteUser(user)
+  } catch (error) {
+    const authError = error as AuthError
+    if (authError.code === "auth/requires-recent-login") {
+      throw new Error("This operation is sensitive and requires recent authentication. Please sign out and sign in again before retrying.")
+    }
+    throw new Error(getAuthErrorMessage(authError.code))
   }
 }
 

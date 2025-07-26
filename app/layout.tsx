@@ -6,11 +6,11 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Infraseis Hidrometeorologi",
+  title: "Portal Hidrometeorologi",
   description: "Platform intelijen hidrometeorologi cerdas dengan analisis tren canggih",
   themeColor: "#10b981",
   icons: {
-    icon: "/logo.png",
+    icon: "https://img.icons8.com/color/240/heavy-rain.png",
   },
 }
 

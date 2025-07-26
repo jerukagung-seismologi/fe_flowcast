@@ -24,6 +24,7 @@ import { fetchDeviceStats, fetchDevicesWithSensors, type DeviceWithSensors, type
 import { fetchRecentAlerts, type LogEvent } from "@/lib/data/FetchingLogs"
 import { fetchWeatherStats } from "@/lib/data/FetchingData"
 import { EmptyState } from "@/components/empty-state"
+import LoadingSpinner from "@/components/LoadingSpinner"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -87,11 +88,7 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   // Show empty state if no devices after loading

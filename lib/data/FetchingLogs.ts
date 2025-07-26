@@ -1,4 +1,4 @@
-import { ref, set, get, query, limitToLast, orderByKey } from "firebase/database"
+import { ref, set, get, query, limitToLast, orderByKey, remove } from "firebase/database"
 import { rtdb } from "@/lib/FirebaseConfig"
 
 export interface LogEvent {
@@ -136,6 +136,16 @@ export async function addLogEvent(
     })
   } catch (error) {
     console.error("Error adding log event:", error)
+    throw error
+  }
+}
+
+export async function deleteLogEvent(userId: string, logId: string): Promise<void> {
+  try {
+    const logRef = ref(rtdb, `logs/${userId}/${logId}`)
+    await remove(logRef)
+  } catch (error) {
+    console.error("Error deleting log event:", error)
     throw error
   }
 }

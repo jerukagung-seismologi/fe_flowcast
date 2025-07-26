@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LayoutDashboard, Settings, FileText, BarChart3 } from "lucide-react"
+import { LayoutDashboard, Settings, FileText, BarChart3, User } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { signOutUser } from "@/lib/FetchingAuth"
 import { MobileSidebar } from "@/components/dashboard/MobileSidebar"
@@ -55,6 +55,7 @@ export default function DashboardLayout({
     { name: "Perangkat", href: "/dashboard/devices", icon: Settings },
     { name: "Grafik", href: "/dashboard/charts", icon: BarChart3 },
     { name: "Log", href: "/dashboard/logs", icon: FileText },
+    { name: "Profil", href: "/dashboard/profile", icon: User },
   ]
 
   return (
@@ -74,4 +75,3 @@ export default function DashboardLayout({
     </div>
   )
 }
-            

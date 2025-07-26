@@ -44,6 +44,7 @@ import {
 } from "@/lib/data/charts"
 import { fetchDevices, type Device } from "@/lib/data/FetchingDevices"
 import { EmptyState } from "@/components/empty-state"
+import LoadingSpinner from "@/components/LoadingSpinner"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"]
 
@@ -116,11 +117,7 @@ export default function ChartsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   // Show empty state if no devices

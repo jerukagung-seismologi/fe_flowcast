@@ -6,10 +6,22 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter, AlertTriangle, CheckCircle, Settings, Wifi, WifiOff, Calendar, Clock } from "lucide-react"
-import { fetchLogs, fetchFilteredLogs, type LogEvent, type LogFilters } from "@/lib/data/FetchingLogs"
+import {
+  Search,
+  Filter,
+  AlertTriangle,
+  CheckCircle,
+  Settings,
+  Wifi,
+  WifiOff,
+  Calendar,
+  Clock,
+  Trash2,
+} from "lucide-react"
+import { fetchLogs, fetchFilteredLogs, deleteLogEvent, type LogEvent, type LogFilters } from "@/lib/data/FetchingLogs"
 import { useAuth } from "@/hooks/useAuth"
 import { EmptyState } from "@/components/empty-state"
+import LoadingSpinner from "@/components/LoadingSpinner"
 
 export default function LogsPage() {
   const { user } = useAuth()
@@ -63,6 +75,21 @@ export default function LogsPage() {
 
     applyFilters()
   }, [searchTerm, typeFilter, severityFilter, dateFilter, user?.uid])
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!user?.uid) return
+
+    if (window.confirm("Apakah Anda yakin ingin menghapus log ini?")) {
+      try {
+        await deleteLogEvent(user.uid, logId)
+        setLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId))
+        setFilteredLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId))
+      } catch (error) {
+        console.error("Error deleting log:", error)
+        // Optionally, show an error message to the user
+      }
+    }
+  }
 
   const getTypeIcon = (type: LogEvent["type"]) => {
     switch (type) {
@@ -119,11 +146,7 @@ export default function LogsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   // Show empty state if no logs
@@ -244,6 +267,14 @@ export default function LogsPage() {
                       <div className="flex items-center space-x-2">
                         <Badge variant={getTypeColor(log.type)}>{log.type}</Badge>
                         <Badge variant={getSeverityColor(log.severity)}>{log.severity}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteLog(log.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                     <div className="flex items-center text-xs text-muted-foreground">

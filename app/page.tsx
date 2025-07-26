@@ -393,13 +393,13 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <div className="p-2 bg-blue-600 rounded-lg">
                   <CloudRain className="h-6 w-6 text-white" />
                 </div>
-                <span className="ml-3 text-xl font-bold">Infraseis Hidrometeorologi</span>
+                <span className="ml-3 text-xl font-bold">Portal Hidrometeorologi</span>
               </div>
               <p className="text-gray-400">
                 Intelijen hidrometeorologi cerdas dengan analisis tren canggih dan manajemen perangkat yang komprehensif.
@@ -426,31 +426,6 @@ export default function LandingPage() {
                 <li>
                   <a href="#" className="hover:text-white transition-colors">
                     Peringatan Cerdas
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Pemantauan</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Pola Cuaca
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Kesehatan Perangkat
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Status Baterai
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Pelacakan Lokasi
                   </a>
                 </li>
               </ul>

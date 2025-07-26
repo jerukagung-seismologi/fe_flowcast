@@ -227,7 +227,7 @@ export default function AuthPage() {
       <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-2">
           <div className="flex justify-center items-center mb-4">
-            <Image src="/logo.png" alt="Infraseis Logo" width={80} height={80} className="rounded-full" />
+            <Image src="https://img.icons8.com/color/240/heavy-rain.png" alt="Infraseis Logo" width={80} height={80} className="rounded-full" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">Infraseis Hidrometeorologi</CardTitle>
           <CardDescription className="text-gray-600">
