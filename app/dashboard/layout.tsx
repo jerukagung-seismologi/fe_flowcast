@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CloudRain, LayoutDashboard, Settings, FileText, BarChart3, LogOut, Menu, X } from "lucide-react"
-import { LanguageSelector } from "@/components/language-selector"
-import { useLanguage } from "@/hooks/useLanguage"
 import { useAuth } from "@/hooks/useAuth"
 import { signOutUser } from "@/lib/auth"
 import { useState } from "react"
@@ -18,7 +16,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { t } = useLanguage()
   const { user, profile, loading } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
@@ -43,7 +40,7 @@ export default function DashboardLayout({
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t("dashboard.loading")}</p>
+          <p className="text-gray-600">Memuat...</p>
         </div>
       </div>
     )
@@ -54,10 +51,10 @@ export default function DashboardLayout({
   }
 
   const navigation = [
-    { name: t("menu.dashboard"), href: "/dashboard", icon: LayoutDashboard },
-    { name: t("menu.devices"), href: "/dashboard/devices", icon: Settings },
-    { name: t("menu.charts"), href: "/dashboard/charts", icon: BarChart3 },
-    { name: t("menu.logs"), href: "/dashboard/logs", icon: FileText },
+    { name: "Dasbor", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Perangkat", href: "/dashboard/devices", icon: Settings },
+    { name: "Grafik", href: "/dashboard/charts", icon: BarChart3 },
+    { name: "Log", href: "/dashboard/logs", icon: FileText },
   ]
 
   return (
@@ -124,14 +121,13 @@ export default function DashboardLayout({
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
               <h1 className="text-lg font-semibold text-gray-900">
-                {t("dashboard.welcome")}, {profile?.displayName || user.email?.split("@")[0]}
+                Selamat Datang, {profile?.displayName || user.email?.split("@")[0]}
               </h1>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <LanguageSelector />
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
-                {t("dashboard.logout")}
+                Keluar
               </Button>
             </div>
           </div>
