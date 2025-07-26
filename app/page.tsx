@@ -147,33 +147,6 @@ export default function LandingPage() {
     },
   ]
 
-  const testimonials = [
-    {
-      name: "Dr. Elena Rodriguez",
-      role: "Kepala Meteorolog",
-      company: "Badan Meteorologi Nasional",
-      content:
-        "Indikator tren dan metadata perangkat komprehensif telah merevolusi pemantauan cuaca kami. Kami sekarang dapat memprediksi pola cuaca berminggu-minggu sebelumnya.",
-      rating: 5,
-    },
-    {
-      name: "Prof. Ahmad Hassan",
-      role: "Ahli Hidrologi",
-      company: "Institut Sumber Daya Air",
-      content:
-        "Memiliki informasi perangkat lengkap termasuk level baterai dan koordinat yang tepat telah meningkatkan efisiensi pemeliharaan kami hingga 300%.",
-      rating: 5,
-    },
-    {
-      name: "Sarah Kim",
-      role: "Direktur Manajemen Darurat",
-      company: "Otoritas Bencana Regional",
-      content:
-        "Indikator tren visual membantu tim kami dengan cepat mengidentifikasi pola cuaca yang berkembang dan merespons lebih cepat terhadap potensi bencana.",
-      rating: 5,
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
