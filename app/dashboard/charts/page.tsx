@@ -3,162 +3,141 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { Button } from "@/components/ui/button"
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts"
-import { TrendingUp, Droplets, CloudRain, TrendingDown, Minus } from "lucide-react"
+import {
+  TrendingUpIcon,
+  TrendingDownIcon,
+  DropletIcon,
+  ThermometerIcon,
+  CloudRainIcon,
+  GaugeIcon,
+  EyeIcon,
+  RefreshCwIcon,
+} from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
+import { useLanguage } from "@/hooks/useLanguage"
+import {
+  fetchWaterLevelData,
+  fetchRainfallData,
+  fetchComparisonData,
+  fetchWeatherTrends,
+  type WaterLevelData,
+  type RainfallData,
+  type ComparisonData,
+  type WeatherTrend,
+} from "@/lib/data/charts"
+import { fetchDevices, type Device } from "@/lib/data/devices"
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"]
 
 export default function ChartsPage() {
-  const [selectedDevice, setSelectedDevice] = useState("1")
-  const [timeRange, setTimeRange] = useState("24h")
+  const { user } = useAuth()
+  const { t } = useLanguage()
+  const [devices, setDevices] = useState<Device[]>([])
+  const [selectedDevice, setSelectedDevice] = useState<string>("all")
+  const [waterLevelData, setWaterLevelData] = useState<WaterLevelData | null>(null)
+  const [rainfallData, setRainfallData] = useState<RainfallData | null>(null)
+  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
+  const [weatherTrends, setWeatherTrends] = useState<WeatherTrend[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
-  // Generate sample data with trend indicators
-  const generateWaterLevelData = () => {
-    const data = []
-    const now = new Date()
-    const hours = timeRange === "24h" ? 24 : timeRange === "7d" ? 168 : 720
+  const loadChartsData = async () => {
+    if (!user?.uid) return
 
-    for (let i = hours; i >= 0; i--) {
-      const time = new Date(now.getTime() - i * 60 * 60 * 1000)
-      const waterLevel = Math.max(0, 2 + Math.sin(i * 0.1) * 0.8 + Math.random() * 0.4)
-      const prevValue = i < hours ? data[data.length - 1]?.waterLevel || waterLevel : waterLevel
+    try {
+      setLoading(true)
+      const [devicesData, waterData, rainData, compData, trendsData] = await Promise.all([
+        fetchDevices(user.uid),
+        fetchWaterLevelData(user.uid, selectedDevice !== "all" ? selectedDevice : undefined),
+        fetchRainfallData(user.uid, selectedDevice !== "all" ? selectedDevice : undefined),
+        fetchComparisonData(user.uid),
+        fetchWeatherTrends(user.uid),
+      ])
 
-      let trend = "stable"
-      if (waterLevel > prevValue + 0.1) trend = "up"
-      else if (waterLevel < prevValue - 0.1) trend = "down"
-
-      data.push({
-        time: time.toISOString(),
-        timeLabel:
-          timeRange === "24h"
-            ? time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
-            : time.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        waterLevel,
-        threshold: 3.0,
-        trend,
-      })
+      setDevices(devicesData)
+      setWaterLevelData(waterData)
+      setRainfallData(rainData)
+      setComparisonData(compData)
+      setWeatherTrends(trendsData)
+    } catch (error) {
+      console.error("Error loading charts data:", error)
+    } finally {
+      setLoading(false)
     }
-    return data
   }
 
-  const generateRainfallData = () => {
-    const data = []
-    const now = new Date()
-    const hours = timeRange === "24h" ? 24 : timeRange === "7d" ? 168 : 720
-
-    for (let i = hours; i >= 0; i--) {
-      const time = new Date(now.getTime() - i * 60 * 60 * 1000)
-      const rainfall = Math.max(0, Math.random() * 20)
-
-      data.push({
-        time: time.toISOString(),
-        timeLabel:
-          timeRange === "24h"
-            ? time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
-            : time.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        rainfall,
-      })
-    }
-    return data
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await loadChartsData()
+    setRefreshing(false)
   }
-
-  const generateComparisonData = () => {
-    const data = []
-    const now = new Date()
-    const hours = 24
-
-    for (let i = hours; i >= 0; i--) {
-      const time = new Date(now.getTime() - i * 60 * 60 * 1000)
-      data.push({
-        time: time.toISOString(),
-        timeLabel: time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-        device1: Math.max(0, 2 + Math.sin(i * 0.1) * 0.8 + Math.random() * 0.4),
-        device2: Math.max(0, 1.5 + Math.cos(i * 0.15) * 0.6 + Math.random() * 0.3),
-        device3: Math.max(0, 1.8 + Math.sin(i * 0.08) * 0.5 + Math.random() * 0.2),
-      })
-    }
-    return data
-  }
-
-  const [waterLevelData, setWaterLevelData] = useState(generateWaterLevelData())
-  const [rainfallData, setRainfallData] = useState(generateRainfallData())
-  const [comparisonData, setComparisonData] = useState(generateComparisonData())
 
   useEffect(() => {
-    setWaterLevelData(generateWaterLevelData())
-    setRainfallData(generateRainfallData())
-  }, [timeRange])
-
-  const devices = [
-    { id: "1", name: "Weather Station Jakarta Utara" },
-    { id: "2", name: "Weather Station Jakarta Barat" },
-    { id: "3", name: "Weather Station Jakarta Selatan" },
-  ]
-
-  const chartConfig = {
-    waterLevel: {
-      label: "Water Level",
-      color: "hsl(var(--chart-1))",
-    },
-    threshold: {
-      label: "Threshold",
-      color: "hsl(var(--chart-2))",
-    },
-    rainfall: {
-      label: "Rainfall",
-      color: "hsl(var(--chart-3))",
-    },
-    device1: {
-      label: "Jakarta Utara",
-      color: "hsl(var(--chart-1))",
-    },
-    device2: {
-      label: "Jakarta Barat",
-      color: "hsl(var(--chart-2))",
-    },
-    device3: {
-      label: "Jakarta Selatan",
-      color: "hsl(var(--chart-3))",
-    },
-  }
+    loadChartsData()
+  }, [user?.uid, selectedDevice])
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case "up":
-        return <TrendingUp className="h-4 w-4 text-green-600" />
+        return <TrendingUpIcon className="h-4 w-4 text-green-600" />
       case "down":
-        return <TrendingDown className="h-4 w-4 text-red-600" />
+        return <TrendingDownIcon className="h-4 w-4 text-red-600" />
       default:
-        return <Minus className="h-4 w-4 text-gray-600" />
+        return <GaugeIcon className="h-4 w-4 text-gray-600" />
     }
   }
 
-  const currentTrend =
-    waterLevelData.length > 0 ? waterLevelData[waterLevelData.length - 1]?.trend || "stable" : "stable"
+  const getTrendColor = (trend: string) => {
+    switch (trend) {
+      case "up":
+        return "text-green-600"
+      case "down":
+        return "text-red-600"
+      default:
+        return "text-gray-600"
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analitik & Tren Cerdas</h1>
-          <p className="text-muted-foreground">Visualisasi data canggih dengan analisis tren intelijen</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("charts.title")}</h1>
+          <p className="text-muted-foreground">{t("charts.description")}</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex items-center space-x-4">
           <Select value={selectedDevice} onValueChange={setSelectedDevice}>
-            <SelectTrigger className="w-48 border-blue-200 focus:border-blue-500">
-              <SelectValue placeholder="Select device" />
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t("charts.selectDevice")} />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">{t("charts.allDevices")}</SelectItem>
               {devices.map((device) => (
                 <SelectItem key={device.id} value={device.id}>
                   {device.name}
@@ -166,143 +145,261 @@ export default function ChartsPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-32 border-purple-200 focus:border-purple-500">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="24h">24 Hours</SelectItem>
-              <SelectItem value="7d">7 Days</SelectItem>
-              <SelectItem value="30d">30 Days</SelectItem>
-            </SelectContent>
-          </Select>
+          <Button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            variant="outline"
+            className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100"
+          >
+            <RefreshCwIcon className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+            {t("common.refresh")}
+          </Button>
         </div>
       </div>
 
-      {/* Water Level Chart with Trend Indicator */}
-      <Card className="shadow-lg border-l-4 border-l-blue-500">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
-          <CardTitle className="flex items-center justify-between text-blue-800">
-            <div className="flex items-center">
-              <Droplets className="h-5 w-5 mr-2 text-blue-600" />
-              Tren Tinggi Air
+      {/* Weather Trends Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {weatherTrends.map((trend, index) => (
+          <Card
+            key={trend.parameter}
+            className="bg-gradient-to-br from-blue-50 to-cyan-50 border-l-4 border-l-blue-500"
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-blue-800">{trend.parameter}</CardTitle>
+              {getTrendIcon(trend.trend)}
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-900">
+                {trend.current} {trend.unit}
+              </div>
+              <div className={`text-xs flex items-center ${getTrendColor(trend.trend)}`}>
+                {trend.change > 0 ? "+" : ""}
+                {trend.change} {trend.unit} {t("charts.fromLastHour")}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Water Level Chart */}
+      {waterLevelData && (
+        <Card className="shadow-lg border-l-4 border-l-blue-500">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
+            <CardTitle className="flex items-center text-blue-800">
+              <DropletIcon className="h-5 w-5 mr-2 text-blue-600" />
+              {t("charts.waterLevelTrends")}
+            </CardTitle>
+            <CardDescription className="text-blue-600">{t("charts.realTimeWaterLevel")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={waterLevelData.current}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number) => [`${value.toFixed(2)}m`, t("charts.waterLevel")]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#2563eb"
+                    strokeWidth={2}
+                    name={t("charts.waterLevel")}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">Current Trend:</span>
-              {getTrendIcon(currentTrend)}
-            </div>
-          </CardTitle>
-          <CardDescription className="text-blue-600">
-            Monitoring tinggi air real-time dengan analisis tren
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={waterLevelData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="timeLabel" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
-                <YAxis
-                  tick={{ fontSize: 12 }}
-                  label={{ value: "Water Level (m)", angle: -90, position: "insideLeft" }}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="waterLevel"
-                  stroke="var(--color-waterLevel)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="threshold"
-                  stroke="var(--color-threshold)"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Rainfall Chart */}
-      <Card className="shadow-lg border-l-4 border-l-green-500">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardTitle className="flex items-center text-green-800">
-            <CloudRain className="h-5 w-5 mr-2 text-green-600" />
-            Analisis Curah Hujan
-          </CardTitle>
-          <CardDescription className="text-green-600">Pola curah hujan dan monitoring intensitas</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={rainfallData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="timeLabel" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 12 }} label={{ value: "Rainfall (mm)", angle: -90, position: "insideLeft" }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="rainfall" fill="var(--color-rainfall)" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {rainfallData && (
+        <Card className="shadow-lg border-l-4 border-l-green-500">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
+            <CardTitle className="flex items-center text-green-800">
+              <CloudRainIcon className="h-5 w-5 mr-2 text-green-600" />
+              {t("charts.rainfallAnalysis")}
+            </CardTitle>
+            <CardDescription className="text-green-600">{t("charts.precipitationData")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={rainfallData.hourly}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number) => [`${value.toFixed(1)}mm`, t("charts.rainfall")]}
+                  />
+                  <Legend />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#16a34a"
+                    fill="#16a34a"
+                    fillOpacity={0.3}
+                    name={t("charts.rainfall")}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Multi-Station Comparison */}
-      <Card className="shadow-lg border-l-4 border-l-purple-500">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50">
-          <CardTitle className="flex items-center text-purple-800">
-            <TrendingUp className="h-5 w-5 mr-2 text-purple-600" />
-            Intelijen Multi-Stasiun
-          </CardTitle>
-          <CardDescription className="text-purple-600">
-            Analisis komparatif lintas stasiun monitoring cuaca
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={comparisonData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="timeLabel" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
-                <YAxis
-                  tick={{ fontSize: 12 }}
-                  label={{ value: "Water Level (m)", angle: -90, position: "insideLeft" }}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Area
-                  type="monotone"
-                  dataKey="device1"
-                  stackId="1"
-                  stroke="var(--color-device1)"
-                  fill="var(--color-device1)"
-                  fillOpacity={0.3}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="device2"
-                  stackId="2"
-                  stroke="var(--color-device2)"
-                  fill="var(--color-device2)"
-                  fillOpacity={0.3}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="device3"
-                  stackId="3"
-                  stroke="var(--color-device3)"
-                  fill="var(--color-device3)"
-                  fillOpacity={0.3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {/* Device Comparison */}
+      {comparisonData && comparisonData.devices.length > 0 && (
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="shadow-lg border-l-4 border-l-purple-500">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardTitle className="flex items-center text-purple-800">
+                <GaugeIcon className="h-5 w-5 mr-2 text-purple-600" />
+                {t("charts.deviceComparison")}
+              </CardTitle>
+              <CardDescription className="text-purple-600">{t("charts.crossDeviceAnalysis")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={comparisonData.devices.map((device, index) => ({
+                      device,
+                      waterLevel: comparisonData.waterLevel[index],
+                      rainfall: comparisonData.rainfall[index],
+                      temperature: comparisonData.temperature[index],
+                    }))}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="device" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="waterLevel" fill="#2563eb" name={t("charts.waterLevel")} />
+                    <Bar dataKey="rainfall" fill="#16a34a" name={t("charts.rainfall")} />
+                    <Bar dataKey="temperature" fill="#dc2626" name={t("charts.temperature")} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-l-4 border-l-orange-500">
+            <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50">
+              <CardTitle className="flex items-center text-orange-800">
+                <ThermometerIcon className="h-5 w-5 mr-2 text-orange-600" />
+                {t("charts.temperatureDistribution")}
+              </CardTitle>
+              <CardDescription className="text-orange-600">{t("charts.deviceTemperatures")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={comparisonData.devices.map((device, index) => ({
+                        name: device,
+                        value: comparisonData.temperature[index],
+                      }))}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value.toFixed(1)}°C`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {comparisonData.devices.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`${value.toFixed(1)}°C`, t("charts.temperature")]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Historical Data Analysis */}
+      {waterLevelData && (
+        <Card className="shadow-lg border-l-4 border-l-indigo-500">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+            <CardTitle className="flex items-center text-indigo-800">
+              <EyeIcon className="h-5 w-5 mr-2 text-indigo-600" />
+              {t("charts.historicalAnalysis")}
+            </CardTitle>
+            <CardDescription className="text-indigo-600">{t("charts.weeklyTrends")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={waterLevelData.historical}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleDateString()} />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number) => [`${value.toFixed(2)}m`, t("charts.waterLevel")]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    name={t("charts.historicalData")}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Prediction Chart */}
+      {waterLevelData && (
+        <Card className="shadow-lg border-l-4 border-l-yellow-500">
+          <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
+            <CardTitle className="flex items-center text-yellow-800">
+              <TrendingUpIcon className="h-5 w-5 mr-2 text-yellow-600" />
+              {t("charts.predictions")}
+            </CardTitle>
+            <CardDescription className="text-yellow-600">{t("charts.forecastData")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={waterLevelData.prediction}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number) => [`${value.toFixed(2)}m`, t("charts.predictedLevel")]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    name={t("charts.prediction")}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

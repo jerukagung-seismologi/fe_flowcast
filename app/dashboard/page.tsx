@@ -3,335 +3,330 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
-  Droplets,
-  Thermometer,
-  Gauge,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Wind,
-  Cloud,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Battery,
-  MapPin,
-  Calendar,
-  Wifi,
-  WifiOff,
+  ThermometerIcon,
+  CloudRainIcon,
+  WindIcon,
+  GaugeIcon,
+  TrendingUpIcon,
+  TrendingDownIcon,
+  MinusIcon,
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  WifiIcon,
+  WifiOffIcon,
+  BatteryIcon,
+  RefreshCwIcon,
 } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
+import { fetchDevices, fetchDeviceStats, type Device, type DeviceStats } from "@/lib/data/devices"
+import { fetchRecentAlerts, type LogEvent } from "@/lib/data/logs"
+import { fetchWeatherStats } from "@/lib/data/weather"
+import { useLanguage } from "@/hooks/useLanguage"
 
 export default function DashboardPage() {
-  const [devices, setDevices] = useState([
-    {
-      id: 1,
-      name: "Weather Station Jakarta Utara",
-      location: "Kelapa Gading",
-      status: "online",
-      registrationDate: "2023-03-15",
-      batteryLevel: 87,
-      coordinates: { lat: -6.1588, lng: 106.9056 },
-      waterLevel: { value: 2.3, trend: "up", change: 0.2 },
-      rainfall: { value: 15.2, trend: "down", change: -2.1 },
-      temperature: { value: 28.5, trend: "up", change: 1.3 },
-      humidity: { value: 78, trend: "stable", change: 0.1 },
-      windSpeed: { value: 12.5, trend: "up", change: 2.8 },
-      pressure: { value: 1012, trend: "down", change: -3.2 },
-      lastUpdate: new Date(Date.now() - 5 * 60 * 1000),
-      threshold: 3.0,
-    },
-    {
-      id: 2,
-      name: "Weather Station Jakarta Barat",
-      location: "Cengkareng",
-      status: "online",
-      registrationDate: "2023-01-22",
-      batteryLevel: 92,
-      coordinates: { lat: -6.1373, lng: 106.7395 },
-      waterLevel: { value: 1.8, trend: "stable", change: 0.0 },
-      rainfall: { value: 8.7, trend: "up", change: 3.2 },
-      temperature: { value: 29.1, trend: "down", change: -0.8 },
-      humidity: { value: 82, trend: "up", change: 4.1 },
-      windSpeed: { value: 8.2, trend: "stable", change: -0.1 },
-      pressure: { value: 1011, trend: "up", change: 1.8 },
-      lastUpdate: new Date(Date.now() - 2 * 60 * 1000),
-      threshold: 2.5,
-    },
-    {
-      id: 3,
-      name: "Weather Station Jakarta Selatan",
-      location: "Kemang",
-      status: "offline",
-      registrationDate: "2022-11-08",
-      batteryLevel: 23,
-      coordinates: { lat: -6.2615, lng: 106.8106 },
-      waterLevel: { value: 0.0, trend: "stable", change: 0.0 },
-      rainfall: { value: 0.0, trend: "stable", change: 0.0 },
-      temperature: { value: 0.0, trend: "stable", change: 0.0 },
-      humidity: { value: 0, trend: "stable", change: 0.0 },
-      windSpeed: { value: 0.0, trend: "stable", change: 0.0 },
-      pressure: { value: 0, trend: "stable", change: 0.0 },
-      lastUpdate: new Date(Date.now() - 30 * 60 * 1000),
-      threshold: 2.0,
-    },
-  ])
+  const { user } = useAuth()
+  const { t } = useLanguage()
+  const [devices, setDevices] = useState<Device[]>([])
+  const [deviceStats, setDeviceStats] = useState<DeviceStats | null>(null)
+  const [recentAlerts, setRecentAlerts] = useState<LogEvent[]>([])
+  const [weatherStats, setWeatherStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const [stats, setStats] = useState({
-    totalDevices: 3,
-    onlineDevices: 2,
-    alertDevices: 0,
-    avgBatteryLevel: 0,
-  })
+  const loadDashboardData = async () => {
+    if (!user?.uid) return
+
+    try {
+      setLoading(true)
+      const [devicesData, statsData, alertsData, weatherData] = await Promise.all([
+        fetchDevices(user.uid),
+        fetchDeviceStats(user.uid),
+        fetchRecentAlerts(user.uid, 5),
+        fetchWeatherStats(user.uid).catch(() => null), // Weather stats are optional
+      ])
+
+      setDevices(devicesData)
+      setDeviceStats(statsData)
+      setRecentAlerts(alertsData)
+      setWeatherStats(weatherData)
+    } catch (error) {
+      console.error("Error loading dashboard data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await loadDashboardData()
+    setRefreshing(false)
+  }
 
   useEffect(() => {
-    const onlineDevices = devices.filter((d) => d.status === "online").length
-    const alertDevices = devices.filter((d) => d.waterLevel.value > d.threshold).length
-    const avgBatteryLevel = devices.reduce((sum, d) => sum + d.batteryLevel, 0) / devices.length
+    loadDashboardData()
+  }, [user?.uid])
 
-    setStats({
-      totalDevices: devices.length,
-      onlineDevices,
-      alertDevices,
-      avgBatteryLevel: Number(avgBatteryLevel.toFixed(1)),
-    })
-  }, [devices])
-
-  const formatTimeAgo = (date: Date) => {
-    const minutes = Math.floor((Date.now() - date.getTime()) / (1000 * 60))
-    if (minutes < 1) return "Just now"
-    if (minutes < 60) return `${minutes}m ago`
-    const hours = Math.floor(minutes / 60)
-    return `${hours}h ago`
-  }
-
-  const getTrendIcon = (trend: string) => {
+  const getTrendIcon = (trend: string, size = "h-4 w-4") => {
     switch (trend) {
       case "up":
-        return <TrendingUp className="h-3 w-3 text-green-600" />
+        return <TrendingUpIcon className={`${size} text-green-600`} />
       case "down":
-        return <TrendingDown className="h-3 w-3 text-red-600" />
+        return <TrendingDownIcon className={`${size} text-red-600`} />
       default:
-        return <Minus className="h-3 w-3 text-gray-600" />
+        return <MinusIcon className={`${size} text-gray-600`} />
     }
   }
 
-  const getTrendColor = (trend: string) => {
-    switch (trend) {
-      case "up":
-        return "text-green-600"
-      case "down":
-        return "text-red-600"
-      default:
-        return "text-gray-600"
-    }
+  const getStatusColor = (status: string) => {
+    return status === "online" ? "text-green-600" : "text-red-600"
   }
 
-  const getBatteryColor = (level: number) => {
-    if (level > 60) return "text-green-600 bg-green-100"
-    if (level > 30) return "text-orange-600 bg-orange-100"
-    return "text-red-600 bg-red-100"
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.welcome")}</h1>
+          <p className="text-muted-foreground">{t("dashboard.overview")}</p>
+        </div>
+        <Button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          variant="outline"
+          className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100"
+        >
+          <RefreshCwIcon className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          {t("common.refresh")}
+        </Button>
+      </div>
+
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0">
+        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Total Stasiun</CardTitle>
-            <Gauge className="h-4 w-4 text-white" />
+            <CardTitle className="text-sm font-medium text-blue-800">{t("dashboard.totalDevices")}</CardTitle>
+            <GaugeIcon className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.totalDevices}</div>
-            <p className="text-xs text-blue-100">Stasiun monitoring cuaca</p>
+            <div className="text-2xl font-bold text-blue-900">{deviceStats?.totalDevices || 0}</div>
+            <p className="text-xs text-blue-600">{t("dashboard.connectedStations")}</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
+
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Stasiun Online</CardTitle>
-            <CheckCircle className="h-4 w-4 text-white" />
+            <CardTitle className="text-sm font-medium text-green-800">{t("dashboard.onlineDevices")}</CardTitle>
+            <WifiIcon className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.onlineDevices}</div>
-            <p className="text-xs text-green-100">Saat ini aktif</p>
+            <div className="text-2xl font-bold text-green-900">{deviceStats?.onlineDevices || 0}</div>
+            <p className="text-xs text-green-600">{t("dashboard.activeNow")}</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0">
+
+        <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-l-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Stasiun Siaga</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-white" />
+            <CardTitle className="text-sm font-medium text-orange-800">{t("dashboard.alerts")}</CardTitle>
+            <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.alertDevices}</div>
-            <p className="text-xs text-red-100">Di atas ambang batas</p>
+            <div className="text-2xl font-bold text-orange-900">{deviceStats?.alertDevices || 0}</div>
+            <p className="text-xs text-orange-600">{t("dashboard.needsAttention")}</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0">
+
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-white">Rata-rata Baterai</CardTitle>
-            <Battery className="h-4 w-4 text-white" />
+            <CardTitle className="text-sm font-medium text-purple-800">{t("dashboard.avgBattery")}</CardTitle>
+            <BatteryIcon className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{stats.avgBatteryLevel}%</div>
-            <p className="text-xs text-orange-100">Semua stasiun</p>
+            <div className="text-2xl font-bold text-purple-900">{deviceStats?.avgBatteryLevel || 0}%</div>
+            <p className="text-xs text-purple-600">{t("dashboard.batteryLevel")}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Device Status Cards */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold tracking-tight">Status Stasiun & Tren</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {devices.map((device) => (
-            <Card
-              key={device.id}
-              className={`${device.status === "offline" ? "border-red-300 bg-gradient-to-br from-red-50 to-pink-50" : "border-green-300 bg-gradient-to-br from-green-50 to-blue-50"} shadow-lg hover:shadow-xl transition-all duration-300`}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{device.name}</CardTitle>
-                  <Badge
-                    variant={device.status === "online" ? "default" : "destructive"}
-                    className={
-                      device.status === "online"
-                        ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                        : "bg-gradient-to-r from-red-500 to-pink-500"
-                    }
+      {/* Device Status Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Active Devices */}
+        <Card className="shadow-lg border-l-4 border-l-blue-500">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
+            <CardTitle className="flex items-center text-blue-800">
+              <WifiIcon className="h-5 w-5 mr-2 text-blue-600" />
+              {t("dashboard.activeDevices")}
+            </CardTitle>
+            <CardDescription className="text-blue-600">{t("dashboard.realTimeMonitoring")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {devices.filter((d) => d.status === "online").length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">{t("dashboard.noActiveDevices")}</div>
+            ) : (
+              devices
+                .filter((d) => d.status === "online")
+                .slice(0, 3)
+                .map((device) => (
+                  <div
+                    key={device.id}
+                    className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg"
                   >
-                    {device.status === "online" ? (
-                      <Wifi className="h-3 w-3 mr-1" />
-                    ) : (
-                      <WifiOff className="h-3 w-3 mr-1" />
-                    )}
-                    {device.status}
+                    <div>
+                      <h4 className="font-medium text-gray-800">{device.name}</h4>
+                      <p className="text-sm text-gray-600">{device.location}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-500">
+                        <WifiIcon className="h-3 w-3 mr-1" />
+                        Online
+                      </Badge>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">{device.waterLevel.value.toFixed(1)}m</div>
+                        <div className="flex items-center">
+                          {getTrendIcon(device.waterLevel.trend, "h-3 w-3")}
+                          <span className="text-xs ml-1">
+                            {device.waterLevel.change > 0 ? "+" : ""}
+                            {device.waterLevel.change.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Alerts */}
+        <Card className="shadow-lg border-l-4 border-l-red-500">
+          <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50">
+            <CardTitle className="flex items-center text-red-800">
+              <AlertTriangleIcon className="h-5 w-5 mr-2 text-red-600" />
+              {t("dashboard.recentAlerts")}
+            </CardTitle>
+            <CardDescription className="text-red-600">{t("dashboard.systemNotifications")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentAlerts.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                <CheckCircleIcon className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                {t("dashboard.noRecentAlerts")}
+              </div>
+            ) : (
+              recentAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className="flex items-start space-x-3 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg"
+                >
+                  <AlertTriangleIcon className="h-4 w-4 text-red-600 mt-1" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">{alert.message}</p>
+                    <p className="text-xs text-gray-600">
+                      {new Date(alert.timestamp).toLocaleString()} • {alert.device}
+                    </p>
+                  </div>
+                  <Badge variant="destructive" className="text-xs">
+                    {alert.severity}
                   </Badge>
                 </div>
-                <CardDescription className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-1 text-blue-500" />
-                  {device.location}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Device Metadata */}
-                <div className="grid grid-cols-2 gap-2 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg">
-                  <div className="flex items-center text-xs">
-                    <Calendar className="h-3 w-3 mr-1 text-purple-600" />
-                    <span className="text-gray-600">Reg: {device.registrationDate}</span>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weather Overview */}
+      {weatherStats && (
+        <Card className="shadow-lg border-l-4 border-l-green-500">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
+            <CardTitle className="flex items-center text-green-800">
+              <CloudRainIcon className="h-5 w-5 mr-2 text-green-600" />
+              {t("dashboard.weatherOverview")}
+            </CardTitle>
+            <CardDescription className="text-green-600">{t("dashboard.currentConditions")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg">
+                <ThermometerIcon className="h-6 w-6 mx-auto mb-2 text-blue-600" />
+                <div className="text-lg font-bold text-blue-800">{weatherStats.averageTemperature}°C</div>
+                <div className="text-xs text-blue-600">{t("dashboard.avgTemp")}</div>
+              </div>
+              <div className="text-center p-3 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg">
+                <CloudRainIcon className="h-6 w-6 mx-auto mb-2 text-green-600" />
+                <div className="text-lg font-bold text-green-800">{weatherStats.totalRainfall}mm</div>
+                <div className="text-xs text-green-600">{t("dashboard.totalRain")}</div>
+              </div>
+              <div className="text-center p-3 bg-gradient-to-br from-orange-100 to-red-100 rounded-lg">
+                <AlertTriangleIcon className="h-6 w-6 mx-auto mb-2 text-orange-600" />
+                <div className="text-lg font-bold text-orange-800">{weatherStats.activeAlerts}</div>
+                <div className="text-xs text-orange-600">{t("dashboard.activeAlerts")}</div>
+              </div>
+              <div className="text-center p-3 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg">
+                <WindIcon className="h-6 w-6 mx-auto mb-2 text-purple-600" />
+                <div className="text-lg font-bold text-purple-800">{weatherStats.extremeEvents}</div>
+                <div className="text-xs text-purple-600">{t("dashboard.extremeEvents")}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Device Performance Summary */}
+      <Card className="shadow-lg border-l-4 border-l-indigo-500">
+        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+          <CardTitle className="flex items-center text-indigo-800">
+            <GaugeIcon className="h-5 w-5 mr-2 text-indigo-600" />
+            {t("dashboard.systemStatus")}
+          </CardTitle>
+          <CardDescription className="text-indigo-600">{t("dashboard.overallHealth")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {devices.map((device) => (
+              <div key={device.id} className="p-4 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-800 truncate">{device.name}</h4>
+                  <div className={`flex items-center ${getStatusColor(device.status)}`}>
+                    {device.status === "online" ? (
+                      <WifiIcon className="h-4 w-4" />
+                    ) : (
+                      <WifiOffIcon className="h-4 w-4" />
+                    )}
                   </div>
-                  <div className="flex items-center text-xs">
-                    <Battery className={`h-3 w-3 mr-1 ${getBatteryColor(device.batteryLevel).split(" ")[0]}`} />
-                    <span className={`font-medium ${getBatteryColor(device.batteryLevel).split(" ")[0]}`}>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t("dashboard.waterLevel")}:</span>
+                    <div className="flex items-center">
+                      <span className="font-medium">{device.waterLevel.value.toFixed(1)}m</span>
+                      {getTrendIcon(device.waterLevel.trend, "h-3 w-3 ml-1")}
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t("dashboard.battery")}:</span>
+                    <span className={`font-medium ${device.batteryLevel < 30 ? "text-red-600" : "text-green-600"}`}>
                       {device.batteryLevel}%
                     </span>
                   </div>
-                  <div className="flex items-center text-xs col-span-2">
-                    <MapPin className="h-3 w-3 mr-1 text-blue-600" />
-                    <span className="text-gray-600">
-                      {device.coordinates.lat.toFixed(4)}, {device.coordinates.lng.toFixed(4)}
-                    </span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">{t("dashboard.lastUpdate")}:</span>
+                    <span className="text-xs text-gray-500">{new Date(device.lastUpdate).toLocaleTimeString()}</span>
                   </div>
                 </div>
-
-                {/* Weather Parameters with Trends */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-2 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg">
-                    <div className="flex items-center justify-center mb-1">
-                      <Droplets className="h-4 w-4 text-blue-600 mr-1" />
-                      {getTrendIcon(device.waterLevel.trend)}
-                    </div>
-                    <div className="text-sm font-medium text-blue-800">{device.waterLevel.value}m</div>
-                    <div className={`text-xs ${getTrendColor(device.waterLevel.trend)}`}>
-                      {device.waterLevel.change > 0 ? "+" : ""}
-                      {device.waterLevel.change}
-                    </div>
-                    <div className="text-xs text-blue-600">Water</div>
-                  </div>
-                  <div className="text-center p-2 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg">
-                    <div className="flex items-center justify-center mb-1">
-                      <Gauge className="h-4 w-4 text-green-600 mr-1" />
-                      {getTrendIcon(device.rainfall.trend)}
-                    </div>
-                    <div className="text-sm font-medium text-green-800">{device.rainfall.value}mm</div>
-                    <div className={`text-xs ${getTrendColor(device.rainfall.trend)}`}>
-                      {device.rainfall.change > 0 ? "+" : ""}
-                      {device.rainfall.change}
-                    </div>
-                    <div className="text-xs text-green-600">Rain</div>
-                  </div>
-                  <div className="text-center p-2 bg-gradient-to-br from-orange-100 to-red-100 rounded-lg">
-                    <div className="flex items-center justify-center mb-1">
-                      <Thermometer className="h-4 w-4 text-orange-600 mr-1" />
-                      {getTrendIcon(device.temperature.trend)}
-                    </div>
-                    <div className="text-sm font-medium text-orange-800">{device.temperature.value}°C</div>
-                    <div className={`text-xs ${getTrendColor(device.temperature.trend)}`}>
-                      {device.temperature.change > 0 ? "+" : ""}
-                      {device.temperature.change}
-                    </div>
-                    <div className="text-xs text-orange-600">Temp</div>
-                  </div>
-                  <div className="text-center p-2 bg-gradient-to-br from-purple-100 to-violet-100 rounded-lg">
-                    <div className="flex items-center justify-center mb-1">
-                      <Cloud className="h-4 w-4 text-purple-600 mr-1" />
-                      {getTrendIcon(device.humidity.trend)}
-                    </div>
-                    <div className="text-sm font-medium text-purple-800">{device.humidity.value}%</div>
-                    <div className={`text-xs ${getTrendColor(device.humidity.trend)}`}>
-                      {device.humidity.change > 0 ? "+" : ""}
-                      {device.humidity.change}
-                    </div>
-                    <div className="text-xs text-purple-600">Humidity</div>
-                  </div>
-                  <div className="text-center p-2 bg-gradient-to-br from-yellow-100 to-amber-100 rounded-lg">
-                    <div className="flex items-center justify-center mb-1">
-                      <Wind className="h-4 w-4 text-yellow-600 mr-1" />
-                      {getTrendIcon(device.windSpeed.trend)}
-                    </div>
-                    <div className="text-sm font-medium text-yellow-800">{device.windSpeed.value}m/s</div>
-                    <div className={`text-xs ${getTrendColor(device.windSpeed.trend)}`}>
-                      {device.windSpeed.change > 0 ? "+" : ""}
-                      {device.windSpeed.change}
-                    </div>
-                    <div className="text-xs text-yellow-600">Wind</div>
-                  </div>
-                  <div className="text-center p-2 bg-gradient-to-br from-gray-100 to-zinc-100 rounded-lg">
-                    <div className="flex items-center justify-center mb-1">
-                      <Gauge className="h-4 w-4 text-gray-600 mr-1" />
-                      {getTrendIcon(device.pressure.trend)}
-                    </div>
-                    <div className="text-sm font-medium text-gray-800">{device.pressure.value}hPa</div>
-                    <div className={`text-xs ${getTrendColor(device.pressure.trend)}`}>
-                      {device.pressure.change > 0 ? "+" : ""}
-                      {device.pressure.change}
-                    </div>
-                    <div className="text-xs text-gray-600">Pressure</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Last update: {formatTimeAgo(device.lastUpdate)}
-                </div>
-
-                {device.waterLevel.value > device.threshold && (
-                  <div className="flex items-center text-xs text-red-700 bg-gradient-to-r from-red-100 to-pink-100 p-2 rounded border border-red-200">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Water level above threshold ({device.threshold}m)
-                  </div>
-                )}
-
-                {device.batteryLevel < 30 && (
-                  <div className="flex items-center text-xs text-orange-700 bg-gradient-to-r from-orange-100 to-yellow-100 p-2 rounded border border-orange-200">
-                    <Battery className="h-3 w-3 mr-1" />
-                    Low battery - maintenance required
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

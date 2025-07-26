@@ -1,50 +1,43 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ChevronDown, Globe } from "lucide-react"
+import { Globe, Check } from "lucide-react"
 import { useLanguage } from "@/hooks/useLanguage"
-import { languages, type Language } from "@/lib/i18n"
+
+const languages = [
+  { code: "id" as const, name: "Bahasa Indonesia", flag: "🇮🇩" },
+  { code: "en" as const, name: "English", flag: "🇺🇸" },
+]
 
 export function LanguageSelector() {
   const { language, setLanguage } = useLanguage()
-  const [isOpen, setIsOpen] = useState(false)
 
-  const handleLanguageChange = (newLanguage: Language) => {
-    setLanguage(newLanguage)
-    setIsOpen(false)
-  }
-
-  const currentLanguage = languages[language]
+  const currentLanguage = languages.find((lang) => lang.code === language)
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-        >
-          <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline-flex items-center gap-1">
-            <span className="text-lg">{currentLanguage.flag}</span>
-            <span className="font-medium">{currentLanguage.name}</span>
+        <Button variant="ghost" size="sm" className="h-8 w-8 px-0 md:h-9 md:w-auto md:px-3">
+          <Globe className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline-block">
+            {currentLanguage?.flag} {currentLanguage?.name}
           </span>
-          <span className="sm:hidden text-lg">{currentLanguage.flag}</span>
-          <ChevronDown className="h-3 w-3 opacity-50" />
+          <span className="md:hidden">{currentLanguage?.flag}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        {Object.entries(languages).map(([code, lang]) => (
+        {languages.map((lang) => (
           <DropdownMenuItem
-            key={code}
-            onClick={() => handleLanguageChange(code as Language)}
-            className={`flex items-center gap-3 cursor-pointer ${language === code ? "bg-blue-50 text-blue-700" : ""}`}
+            key={lang.code}
+            onClick={() => setLanguage(lang.code)}
+            className="flex items-center justify-between cursor-pointer"
           >
-            <span className="text-lg">{lang.flag}</span>
-            <span className="font-medium">{lang.name}</span>
-            {language === code && <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full"></div>}
+            <div className="flex items-center">
+              <span className="mr-2">{lang.flag}</span>
+              <span>{lang.name}</span>
+            </div>
+            {language === lang.code && <Check className="h-4 w-4 text-blue-600" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

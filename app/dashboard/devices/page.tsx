@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 import {
   Plus,
   Edit,
@@ -28,76 +29,33 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Key,
+  Copy,
 } from "lucide-react"
 
-interface Device {
-  id: number
-  name: string
-  location: string
-  status: "online" | "offline"
-  threshold: number
-  registrationDate: string
-  batteryLevel: number
-  coordinates: { lat: number; lng: number }
-  trends: {
-    waterLevel: "up" | "down" | "stable"
-    temperature: "up" | "down" | "stable"
-    rainfall: "up" | "down" | "stable"
-  }
-}
+import {
+  fetchDevices,
+  addDevice,
+  updateDevice,
+  deleteDevice,
+  generateDeviceToken,
+  type Device,
+} from "@/lib/data/devices"
+import { useAuth } from "@/hooks/useAuth"
+import { useLanguage } from "@/hooks/useLanguage"
 
 export default function DevicesPage() {
-  const [devices, setDevices] = useState<Device[]>([
-    {
-      id: 1,
-      name: "Weather Station Jakarta Utara",
-      location: "Kelapa Gading",
-      status: "online",
-      threshold: 3.0,
-      registrationDate: "2023-03-15",
-      batteryLevel: 87,
-      coordinates: { lat: -6.1588, lng: 106.9056 },
-      trends: {
-        waterLevel: "up",
-        temperature: "up",
-        rainfall: "down",
-      },
-    },
-    {
-      id: 2,
-      name: "Weather Station Jakarta Barat",
-      location: "Cengkareng",
-      status: "online",
-      threshold: 2.5,
-      registrationDate: "2023-01-22",
-      batteryLevel: 92,
-      coordinates: { lat: -6.1373, lng: 106.7395 },
-      trends: {
-        waterLevel: "stable",
-        temperature: "down",
-        rainfall: "up",
-      },
-    },
-    {
-      id: 3,
-      name: "Weather Station Jakarta Selatan",
-      location: "Kemang",
-      status: "offline",
-      threshold: 2.0,
-      registrationDate: "2022-11-08",
-      batteryLevel: 23,
-      coordinates: { lat: -6.2615, lng: 106.8106 },
-      trends: {
-        waterLevel: "stable",
-        temperature: "stable",
-        rainfall: "stable",
-      },
-    },
-  ])
+  const { user } = useAuth()
+  const { t } = useLanguage()
+  const { toast } = useToast()
+  const [devices, setDevices] = useState<Device[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isTokenDialogOpen, setIsTokenDialogOpen] = useState(false)
   const [editingDevice, setEditingDevice] = useState<Device | null>(null)
+  const [deviceToken, setDeviceToken] = useState<string>("")
   const [newDevice, setNewDevice] = useState({
     name: "",
     location: "",
@@ -107,41 +65,143 @@ export default function DevicesPage() {
     batteryLevel: 100,
   })
 
-  const handleAddDevice = () => {
-    const device: Device = {
-      id: Date.now(),
-      name: newDevice.name,
-      location: newDevice.location,
-      status: "offline",
-      threshold: newDevice.threshold,
-      registrationDate: new Date().toISOString().split("T")[0],
-      batteryLevel: newDevice.batteryLevel,
-      coordinates: {
-        lat: newDevice.latitude ? Number.parseFloat(newDevice.latitude) : 0,
-        lng: newDevice.longitude ? Number.parseFloat(newDevice.longitude) : 0,
-      },
-      trends: {
-        waterLevel: "stable",
-        temperature: "stable",
-        rainfall: "stable",
-      },
+  const loadDevices = async () => {
+    if (!user?.uid) return
+
+    try {
+      setLoading(true)
+      const devicesData = await fetchDevices(user.uid)
+      setDevices(devicesData)
+    } catch (error) {
+      console.error("Error loading devices:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load devices. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
-
-    setDevices([...devices, device])
-    setNewDevice({ name: "", location: "", threshold: 2.0, latitude: "", longitude: "", batteryLevel: 100 })
-    setIsAddDialogOpen(false)
   }
 
-  const handleEditDevice = () => {
-    if (!editingDevice) return
+  useEffect(() => {
+    loadDevices()
+  }, [user?.uid])
 
-    setDevices(devices.map((d) => (d.id === editingDevice.id ? editingDevice : d)))
-    setIsEditDialogOpen(false)
-    setEditingDevice(null)
+  const handleAddDevice = async () => {
+    if (!user?.uid) return
+
+    try {
+      const deviceData = {
+        name: newDevice.name,
+        location: newDevice.location,
+        threshold: newDevice.threshold,
+        registrationDate: new Date().toISOString().split("T")[0],
+        batteryLevel: newDevice.batteryLevel,
+        coordinates: {
+          lat: newDevice.latitude ? Number.parseFloat(newDevice.latitude) : 0,
+          lng: newDevice.longitude ? Number.parseFloat(newDevice.longitude) : 0,
+        },
+        trends: {
+          waterLevel: "stable" as const,
+          temperature: "stable" as const,
+          rainfall: "stable" as const,
+        },
+      }
+
+      const newDeviceResult = await addDevice(deviceData, user.uid)
+      setDevices([...devices, newDeviceResult])
+      setNewDevice({ name: "", location: "", threshold: 2.0, latitude: "", longitude: "", batteryLevel: 100 })
+      setIsAddDialogOpen(false)
+
+      toast({
+        title: "Success",
+        description: "Device added successfully!",
+      })
+    } catch (error) {
+      console.error("Error adding device:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add device. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const handleDeleteDevice = (id: number) => {
-    setDevices(devices.filter((d) => d.id !== id))
+  const handleEditDevice = async () => {
+    if (!editingDevice || !user?.uid) return
+
+    try {
+      const updatedDevice = await updateDevice(editingDevice.id, editingDevice, user.uid)
+      if (updatedDevice) {
+        setDevices(devices.map((d) => (d.id === editingDevice.id ? updatedDevice : d)))
+        toast({
+          title: "Success",
+          description: "Device updated successfully!",
+        })
+      }
+      setIsEditDialogOpen(false)
+      setEditingDevice(null)
+    } catch (error) {
+      console.error("Error updating device:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update device. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteDevice = async (id: string) => {
+    if (!user?.uid) return
+
+    try {
+      const success = await deleteDevice(id, user.uid)
+      if (success) {
+        setDevices(devices.filter((d) => d.id !== id))
+        toast({
+          title: "Success",
+          description: "Device deleted successfully!",
+        })
+      }
+    } catch (error) {
+      console.error("Error deleting device:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete device. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleGenerateToken = async (deviceId: string) => {
+    if (!user?.uid) return
+
+    try {
+      const tokenData = await generateDeviceToken(deviceId, user.uid)
+      setDeviceToken(tokenData.token)
+      setIsTokenDialogOpen(true)
+
+      toast({
+        title: "Success",
+        description: "Device authentication token generated!",
+      })
+    } catch (error) {
+      console.error("Error generating token:", error)
+      toast({
+        title: "Error",
+        description: "Failed to generate device token. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const copyTokenToClipboard = () => {
+    navigator.clipboard.writeText(deviceToken)
+    toast({
+      title: "Copied",
+      description: "Device token copied to clipboard!",
+    })
   }
 
   const openEditDialog = (device: Device) => {
@@ -166,28 +226,36 @@ export default function DevicesPage() {
     return "text-red-600 bg-red-100"
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manajemen Perangkat Cerdas</h1>
-          <p className="text-muted-foreground">Kelola stasiun cuaca dengan metadata komprehensif dan analisis tren</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("devices.title")}</h1>
+          <p className="text-muted-foreground">{t("devices.description")}</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
               <Plus className="h-4 w-4 mr-2" />
-              Tambah Perangkat
+              {t("devices.addDevice")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Tambah Stasiun Cuaca Baru</DialogTitle>
-              <DialogDescription>Add a new hydrometeorological monitoring station to your network.</DialogDescription>
+              <DialogTitle>{t("devices.addNewDevice")}</DialogTitle>
+              <DialogDescription>{t("devices.addDeviceDescription")}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Nama Stasiun</Label>
+                <Label htmlFor="name">{t("devices.stationName")}</Label>
                 <Input
                   id="name"
                   placeholder="e.g., Weather Station Jakarta Timur"
@@ -196,7 +264,7 @@ export default function DevicesPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="location">Lokasi</Label>
+                <Label htmlFor="location">{t("devices.location")}</Label>
                 <Input
                   id="location"
                   placeholder="e.g., Menteng"
@@ -206,7 +274,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="latitude">Latitude</Label>
+                  <Label htmlFor="latitude">{t("devices.latitude")}</Label>
                   <Input
                     id="latitude"
                     placeholder="-6.2088"
@@ -215,7 +283,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="longitude">Longitude</Label>
+                  <Label htmlFor="longitude">{t("devices.longitude")}</Label>
                   <Input
                     id="longitude"
                     placeholder="106.8456"
@@ -226,7 +294,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="threshold">Ambang Batas Siaga (meter)</Label>
+                  <Label htmlFor="threshold">{t("devices.alertThreshold")}</Label>
                   <Input
                     id="threshold"
                     type="number"
@@ -236,7 +304,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="battery">Level Baterai Awal (%)</Label>
+                  <Label htmlFor="battery">{t("devices.initialBattery")}</Label>
                   <Input
                     id="battery"
                     type="number"
@@ -250,9 +318,9 @@ export default function DevicesPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
-              <Button onClick={handleAddDevice}>Add Device</Button>
+              <Button onClick={handleAddDevice}>{t("devices.addDevice")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -294,14 +362,14 @@ export default function DevicesPage() {
                 <div className="flex items-center text-sm">
                   <Calendar className="h-4 w-4 mr-2 text-purple-600" />
                   <div>
-                    <div className="font-medium text-gray-800">Registered</div>
+                    <div className="font-medium text-gray-800">{t("devices.registered")}</div>
                     <div className="text-xs text-gray-600">{device.registrationDate}</div>
                   </div>
                 </div>
                 <div className="flex items-center text-sm">
                   <Battery className={`h-4 w-4 mr-2 ${getBatteryColor(device.batteryLevel).split(" ")[0]}`} />
                   <div>
-                    <div className="font-medium text-gray-800">Battery</div>
+                    <div className="font-medium text-gray-800">{t("devices.battery")}</div>
                     <div className={`text-xs font-medium ${getBatteryColor(device.batteryLevel).split(" ")[0]}`}>
                       {device.batteryLevel}%
                     </div>
@@ -310,7 +378,7 @@ export default function DevicesPage() {
                 <div className="col-span-2 flex items-center text-sm">
                   <MapPin className="h-4 w-4 mr-2 text-blue-600" />
                   <div>
-                    <div className="font-medium text-gray-800">Coordinates</div>
+                    <div className="font-medium text-gray-800">{t("devices.coordinates")}</div>
                     <div className="text-xs text-gray-600">
                       {device.coordinates.lat.toFixed(4)}, {device.coordinates.lng.toFixed(4)}
                     </div>
@@ -320,14 +388,14 @@ export default function DevicesPage() {
 
               {/* Trend Indicators */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">Current Trends</h4>
+                <h4 className="text-sm font-medium text-gray-700">{t("devices.currentTrends")}</h4>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="flex items-center justify-center p-2 bg-gradient-to-br from-blue-100 to-cyan-100 rounded">
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">
                         {getTrendIcon(device.trends.waterLevel)}
                       </div>
-                      <div className="text-xs text-blue-600">Water</div>
+                      <div className="text-xs text-blue-600">{t("devices.water")}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-center p-2 bg-gradient-to-br from-orange-100 to-red-100 rounded">
@@ -335,7 +403,7 @@ export default function DevicesPage() {
                       <div className="flex items-center justify-center mb-1">
                         {getTrendIcon(device.trends.temperature)}
                       </div>
-                      <div className="text-xs text-orange-600">Temp</div>
+                      <div className="text-xs text-orange-600">{t("devices.temp")}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-center p-2 bg-gradient-to-br from-green-100 to-emerald-100 rounded">
@@ -343,7 +411,7 @@ export default function DevicesPage() {
                       <div className="flex items-center justify-center mb-1">
                         {getTrendIcon(device.trends.rainfall)}
                       </div>
-                      <div className="text-xs text-green-600">Rain</div>
+                      <div className="text-xs text-green-600">{t("devices.rain")}</div>
                     </div>
                   </div>
                 </div>
@@ -352,7 +420,7 @@ export default function DevicesPage() {
               {/* Device Settings */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Alert Threshold:</span>
+                  <span className="text-gray-600">{t("devices.alertThreshold")}:</span>
                   <span className="font-medium text-purple-600">{device.threshold}m</span>
                 </div>
               </div>
@@ -365,16 +433,24 @@ export default function DevicesPage() {
                   onClick={() => openEditDialog(device)}
                 >
                   <Edit className="h-3 w-3 mr-1 text-blue-600" />
-                  Edit
+                  {t("common.edit")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 border-red-200"
+                  className="flex-1 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200"
+                  onClick={() => handleGenerateToken(device.id)}
+                >
+                  <Key className="h-3 w-3 mr-1 text-green-600" />
+                  {t("devices.token")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 border-red-200"
                   onClick={() => handleDeleteDevice(device.id)}
                 >
-                  <Trash2 className="h-3 w-3 mr-1 text-red-600" />
-                  Delete
+                  <Trash2 className="h-3 w-3 text-red-600" />
                 </Button>
               </div>
 
@@ -382,7 +458,7 @@ export default function DevicesPage() {
               {device.batteryLevel < 30 && (
                 <div className="flex items-center text-xs text-orange-700 bg-gradient-to-r from-orange-100 to-yellow-100 p-2 rounded border border-orange-200">
                   <Battery className="h-3 w-3 mr-1" />
-                  Low battery - maintenance required
+                  {t("devices.lowBattery")}
                 </div>
               )}
             </CardContent>
@@ -394,13 +470,13 @@ export default function DevicesPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Weather Station</DialogTitle>
-            <DialogDescription>Update device information, settings, and metadata.</DialogDescription>
+            <DialogTitle>{t("devices.editDevice")}</DialogTitle>
+            <DialogDescription>{t("devices.editDeviceDescription")}</DialogDescription>
           </DialogHeader>
           {editingDevice && (
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="edit-name">Station Name</Label>
+                <Label htmlFor="edit-name">{t("devices.stationName")}</Label>
                 <Input
                   id="edit-name"
                   value={editingDevice.name}
@@ -408,7 +484,7 @@ export default function DevicesPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-location">Location</Label>
+                <Label htmlFor="edit-location">{t("devices.location")}</Label>
                 <Input
                   id="edit-location"
                   value={editingDevice.location}
@@ -417,7 +493,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-status">Status</Label>
+                  <Label htmlFor="edit-status">{t("devices.status")}</Label>
                   <Select
                     value={editingDevice.status}
                     onValueChange={(value: "online" | "offline") =>
@@ -428,13 +504,13 @@ export default function DevicesPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="online">Online</SelectItem>
-                      <SelectItem value="offline">Offline</SelectItem>
+                      <SelectItem value="online">{t("devices.online")}</SelectItem>
+                      <SelectItem value="offline">{t("devices.offline")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-battery">Battery Level (%)</Label>
+                  <Label htmlFor="edit-battery">{t("devices.batteryLevel")}</Label>
                   <Input
                     id="edit-battery"
                     type="number"
@@ -448,7 +524,7 @@ export default function DevicesPage() {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-threshold">Alert Threshold (meters)</Label>
+                <Label htmlFor="edit-threshold">{t("devices.alertThreshold")}</Label>
                 <Input
                   id="edit-threshold"
                   type="number"
@@ -459,7 +535,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-lat">Latitude</Label>
+                  <Label htmlFor="edit-lat">{t("devices.latitude")}</Label>
                   <Input
                     id="edit-lat"
                     type="number"
@@ -474,7 +550,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-lng">Longitude</Label>
+                  <Label htmlFor="edit-lng">{t("devices.longitude")}</Label>
                   <Input
                     id="edit-lng"
                     type="number"
@@ -493,9 +569,35 @@ export default function DevicesPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
-            <Button onClick={handleEditDevice}>Save Changes</Button>
+            <Button onClick={handleEditDevice}>{t("common.save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Device Token Dialog */}
+      <Dialog open={isTokenDialogOpen} onOpenChange={setIsTokenDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("devices.deviceToken")}</DialogTitle>
+            <DialogDescription>{t("devices.tokenDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-100 rounded-lg">
+              <div className="flex items-center justify-between">
+                <code className="text-sm font-mono break-all">{deviceToken}</code>
+                <Button variant="outline" size="sm" onClick={copyTokenToClipboard} className="ml-2 bg-transparent">
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>{t("devices.tokenWarning")}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsTokenDialogOpen(false)}>{t("common.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

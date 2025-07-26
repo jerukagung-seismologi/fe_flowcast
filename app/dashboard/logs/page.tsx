@@ -7,118 +7,63 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Filter, AlertTriangle, CheckCircle, Settings, Wifi, WifiOff, Calendar, Clock } from "lucide-react"
-
-interface LogEvent {
-  id: number
-  timestamp: Date
-  type: "alert" | "connection" | "disconnection" | "configuration" | "threshold"
-  device: string
-  message: string
-  severity: "low" | "medium" | "high"
-}
+import { fetchLogs, fetchFilteredLogs, type LogEvent, type LogFilters } from "@/lib/data/logs"
+import { useAuth } from "@/hooks/useAuth"
+import { useLanguage } from "@/hooks/useLanguage"
 
 export default function LogsPage() {
+  const { user } = useAuth()
+  const { t } = useLanguage()
   const [logs, setLogs] = useState<LogEvent[]>([])
   const [filteredLogs, setFilteredLogs] = useState<LogEvent[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
   const [severityFilter, setSeverityFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("all")
+  const [loading, setLoading] = useState(true)
 
-  // Generate sample log data
+  // Load initial data
   useEffect(() => {
-    const generateLogs = () => {
-      const events: LogEvent[] = []
-      const devices = ["Sensor Jakarta Utara", "Sensor Jakarta Barat", "Sensor Jakarta Selatan"]
-      const types: LogEvent["type"][] = ["alert", "connection", "disconnection", "configuration", "threshold"]
-      const severities: LogEvent["severity"][] = ["low", "medium", "high"]
+    const loadLogs = async () => {
+      if (!user?.uid) return
 
-      for (let i = 0; i < 50; i++) {
-        const device = devices[Math.floor(Math.random() * devices.length)]
-        const type = types[Math.floor(Math.random() * types.length)]
-        const severity = severities[Math.floor(Math.random() * severities.length)]
-        const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
-
-        let message = ""
-        switch (type) {
-          case "alert":
-            message = `Water level exceeded threshold at ${device}`
-            break
-          case "connection":
-            message = `${device} connected successfully`
-            break
-          case "disconnection":
-            message = `${device} disconnected unexpectedly`
-            break
-          case "configuration":
-            message = `Configuration updated for ${device}`
-            break
-          case "threshold":
-            message = `Threshold settings changed for ${device}`
-            break
-        }
-
-        events.push({
-          id: i + 1,
-          timestamp,
-          type,
-          device,
-          message,
-          severity,
-        })
+      try {
+        setLoading(true)
+        const logsData = await fetchLogs(user.uid)
+        setLogs(logsData)
+        setFilteredLogs(logsData)
+      } catch (error) {
+        console.error("Error loading logs:", error)
+      } finally {
+        setLoading(false)
       }
-
-      return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     }
 
-    setLogs(generateLogs())
-  }, [])
+    loadLogs()
+  }, [user?.uid])
 
   // Filter logs based on search and filters
   useEffect(() => {
-    let filtered = logs
+    const applyFilters = async () => {
+      if (!user?.uid) return
 
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (log) =>
-          log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          log.device.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
+      try {
+        const filters: LogFilters = {
+          searchTerm: searchTerm || undefined,
+          type: typeFilter !== "all" ? typeFilter : undefined,
+          severity: severityFilter !== "all" ? severityFilter : undefined,
+          dateRange: dateFilter !== "all" ? dateFilter : undefined,
+        }
 
-    // Type filter
-    if (typeFilter !== "all") {
-      filtered = filtered.filter((log) => log.type === typeFilter)
-    }
-
-    // Severity filter
-    if (severityFilter !== "all") {
-      filtered = filtered.filter((log) => log.severity === severityFilter)
-    }
-
-    // Date filter
-    if (dateFilter !== "all") {
-      const now = new Date()
-      const cutoffDate = new Date()
-
-      switch (dateFilter) {
-        case "today":
-          cutoffDate.setHours(0, 0, 0, 0)
-          break
-        case "week":
-          cutoffDate.setDate(now.getDate() - 7)
-          break
-        case "month":
-          cutoffDate.setMonth(now.getMonth() - 1)
-          break
+        const filtered = await fetchFilteredLogs(user.uid, filters)
+        setFilteredLogs(filtered)
+      } catch (error) {
+        console.error("Error filtering logs:", error)
       }
-
-      filtered = filtered.filter((log) => log.timestamp >= cutoffDate)
     }
 
-    setFilteredLogs(filtered)
-  }, [logs, searchTerm, typeFilter, severityFilter, dateFilter])
+    applyFilters()
+  }, [searchTerm, typeFilter, severityFilter, dateFilter, user?.uid])
 
   const getTypeIcon = (type: LogEvent["type"]) => {
     switch (type) {
@@ -174,11 +119,19 @@ export default function LogsPage() {
     setDateFilter("all")
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Log Kejadian</h1>
-        <p className="text-muted-foreground">Monitor aktivitas sistem dan kejadian perangkat</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("logs.title")}</h1>
+        <p className="text-muted-foreground">{t("logs.description")}</p>
       </div>
 
       {/* Filters */}
@@ -186,7 +139,7 @@ export default function LogsPage() {
         <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
           <CardTitle className="flex items-center text-indigo-800">
             <Filter className="h-5 w-5 mr-2 text-indigo-600" />
-            Filter & Pencarian
+            {t("logs.filterSearch")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -195,7 +148,7 @@ export default function LogsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search logs..."
+                  placeholder={t("logs.searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 border-blue-200 focus:border-blue-500"
@@ -204,43 +157,43 @@ export default function LogsPage() {
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Event Type" />
+                <SelectValue placeholder={t("logs.eventType")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="alert">Alerts</SelectItem>
-                <SelectItem value="connection">Connections</SelectItem>
-                <SelectItem value="disconnection">Disconnections</SelectItem>
-                <SelectItem value="configuration">Configuration</SelectItem>
-                <SelectItem value="threshold">Threshold</SelectItem>
+                <SelectItem value="all">{t("logs.allTypes")}</SelectItem>
+                <SelectItem value="alert">{t("logs.alerts")}</SelectItem>
+                <SelectItem value="connection">{t("logs.connections")}</SelectItem>
+                <SelectItem value="disconnection">{t("logs.disconnections")}</SelectItem>
+                <SelectItem value="configuration">{t("logs.configuration")}</SelectItem>
+                <SelectItem value="threshold">{t("logs.threshold")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={severityFilter} onValueChange={setSeverityFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Severity" />
+                <SelectValue placeholder={t("logs.severity")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Severities</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="all">{t("logs.allSeverities")}</SelectItem>
+                <SelectItem value="high">{t("logs.high")}</SelectItem>
+                <SelectItem value="medium">{t("logs.medium")}</SelectItem>
+                <SelectItem value="low">{t("logs.low")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Time Period" />
+                <SelectValue placeholder={t("logs.timePeriod")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">Last Week</SelectItem>
-                <SelectItem value="month">Last Month</SelectItem>
+                <SelectItem value="all">{t("logs.allTime")}</SelectItem>
+                <SelectItem value="today">{t("logs.today")}</SelectItem>
+                <SelectItem value="week">{t("logs.lastWeek")}</SelectItem>
+                <SelectItem value="month">{t("logs.lastMonth")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredLogs.length} of {logs.length} events
+              {t("logs.showing")} {filteredLogs.length} {t("logs.of")} {logs.length} {t("logs.events")}
             </p>
             <Button
               variant="outline"
@@ -248,7 +201,7 @@ export default function LogsPage() {
               onClick={clearFilters}
               className="bg-gradient-to-r from-gray-50 to-blue-50 hover:from-gray-100 hover:to-blue-100 border-blue-200"
             >
-              Clear Filters
+              {t("logs.clearFilters")}
             </Button>
           </div>
         </CardContent>
@@ -257,13 +210,13 @@ export default function LogsPage() {
       {/* Log Entries */}
       <Card className="shadow-lg border-l-4 border-l-green-500">
         <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
-          <CardTitle className="text-green-800">Kejadian Terbaru</CardTitle>
-          <CardDescription className="text-green-600">Aktivitas sistem dan peringatan terbaru</CardDescription>
+          <CardTitle className="text-green-800">{t("logs.recentEvents")}</CardTitle>
+          <CardDescription className="text-green-600">{t("logs.systemActivity")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredLogs.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">No events found matching your criteria</div>
+              <div className="text-center py-8 text-muted-foreground">{t("logs.noEvents")}</div>
             ) : (
               filteredLogs.map((log) => (
                 <div
@@ -281,7 +234,7 @@ export default function LogsPage() {
                     </div>
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {log.timestamp.toLocaleDateString()} at {log.timestamp.toLocaleTimeString()}
+                      {new Date(log.timestamp).toLocaleDateString()} at {new Date(log.timestamp).toLocaleTimeString()}
                       <span className="mx-2">•</span>
                       {log.device}
                     </div>
