@@ -1,5 +1,5 @@
 import { ref, push, get, query, limitToLast, orderByKey } from "firebase/database"
-import { rtdb } from "@/lib/firebase"
+import { rtdb } from "@/lib/FirebaseConfig"
 
 export interface LogEvent {
   id: string

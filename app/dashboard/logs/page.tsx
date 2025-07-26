@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Filter, AlertTriangle, CheckCircle, Settings, Wifi, WifiOff, Calendar, Clock } from "lucide-react"
-import { fetchLogs, fetchFilteredLogs, type LogEvent, type LogFilters } from "@/lib/data/logs"
+import { fetchLogs, fetchFilteredLogs, type LogEvent, type LogFilters } from "@/lib/data/FetchingLogs"
 import { useAuth } from "@/hooks/useAuth"
 import { EmptyState } from "@/components/empty-state"
 

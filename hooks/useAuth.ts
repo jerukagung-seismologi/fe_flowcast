@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { type User, onAuthStateChanged } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+import { auth } from "@/lib/FirebaseConfig"
 import { getUserProfile, type UserProfile } from "@/lib/auth"
 
 export interface AuthState {

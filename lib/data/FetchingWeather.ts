@@ -1,5 +1,5 @@
-import { fetchDevices } from "./devices"
-import { fetchRecentAlerts } from "./logs"
+import { fetchDevices } from "./FetchingDevice"
+import { fetchRecentAlerts } from "./FetchingLogs"
 
 export interface WeatherStats {
   averageTemperature: number

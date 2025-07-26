@@ -1,4 +1,4 @@
-import { fetchDevices } from "./devices"
+import { fetchDevices } from "./FetchingDevice"
 
 export interface ChartDataPoint {
   timestamp: string

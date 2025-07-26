@@ -42,7 +42,7 @@ import {
   type ComparisonData,
   type WeatherTrend,
 } from "@/lib/data/charts"
-import { fetchDevices, type Device } from "@/lib/data/devices"
+import { fetchDevices, type Device } from "@/lib/data/FetchingDevice"
 import { EmptyState } from "@/components/empty-state"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"]

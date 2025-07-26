@@ -11,7 +11,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore"
 import { ref, push } from "firebase/database"
-import { db, rtdb } from "@/lib/firebase"
+import { db, rtdb } from "@/lib/FirebaseConfig"
 
 export interface Device {
   id: string

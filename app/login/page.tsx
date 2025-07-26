@@ -248,7 +248,7 @@ export default function AuthPage() {
                 !isSignUp ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Masuk
+              Daftar
             </button>
             <button
               type="button"
@@ -257,7 +257,7 @@ export default function AuthPage() {
                 isSignUp ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Daftar
+              Masuk
             </button>
           </div>
         </div>

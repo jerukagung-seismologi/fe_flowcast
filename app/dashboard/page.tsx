@@ -20,9 +20,9 @@ import {
   RefreshCwIcon,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { fetchDevices, fetchDeviceStats, type Device, type DeviceStats } from "@/lib/data/devices"
-import { fetchRecentAlerts, type LogEvent } from "@/lib/data/logs"
-import { fetchWeatherStats } from "@/lib/data/weather"
+import { fetchDevices, fetchDeviceStats, type Device, type DeviceStats } from "@/lib/data/FetchingDevice"
+import { fetchRecentAlerts, type LogEvent } from "@/lib/data/FetchingLogs"
+import { fetchWeatherStats } from "@/lib/data/FetchingWeather"
 import { EmptyState } from "@/components/empty-state"
 
 export default function DashboardPage() {

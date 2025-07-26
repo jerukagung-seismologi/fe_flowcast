@@ -40,7 +40,7 @@ import {
   deleteDevice,
   generateDeviceToken,
   type Device,
-} from "@/lib/data/devices"
+} from "@/lib/data/FetchingDevice"
 import { useAuth } from "@/hooks/useAuth"
 import { EmptyState } from "@/components/empty-state"
 
