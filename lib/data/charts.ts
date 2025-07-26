@@ -1,4 +1,4 @@
-import { fetchDevices } from "./FetchingDevices"
+import { fetchDevicesWithSensors } from "@/lib/data/FetchingData"
 
 export interface ChartDataPoint {
   timestamp: string
@@ -61,7 +61,7 @@ const generateTimeSeriesData = (hours: number, baseValue: number, variance: numb
 
 export async function fetchWaterLevelData(userId: string, deviceId?: string): Promise<WaterLevelData> {
   try {
-    const devices = await fetchDevices(userId)
+    const devices = await fetchDevicesWithSensors(userId)
 
     if (devices.length === 0) {
       return {
@@ -91,7 +91,7 @@ export async function fetchWaterLevelData(userId: string, deviceId?: string): Pr
 
 export async function fetchRainfallData(userId: string, deviceId?: string): Promise<RainfallData> {
   try {
-    const devices = await fetchDevices(userId)
+    const devices = await fetchDevicesWithSensors(userId)
 
     if (devices.length === 0) {
       return {
@@ -121,7 +121,7 @@ export async function fetchRainfallData(userId: string, deviceId?: string): Prom
 
 export async function fetchComparisonData(userId: string): Promise<ComparisonData> {
   try {
-    const devices = await fetchDevices(userId)
+    const devices = await fetchDevicesWithSensors(userId)
 
     if (devices.length === 0) {
       return {
@@ -151,7 +151,7 @@ export async function fetchComparisonData(userId: string): Promise<ComparisonDat
 
 export async function fetchWeatherTrends(userId: string): Promise<WeatherTrend[]> {
   try {
-    const devices = await fetchDevices(userId)
+    const devices = await fetchDevicesWithSensors(userId)
 
     if (devices.length === 0) {
       return []

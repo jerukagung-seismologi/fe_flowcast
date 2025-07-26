@@ -25,40 +25,40 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: <TrendingUp className="h-8 w-8 text-green-600" />,
+      icon: <TrendingUp className="h-8 w-8 text-white" />,
       title: "Analisis Tren",
       description: "Identifikasi pola cuaca yang sedang berkembang dengan indikator tren visual yang intuitif.",
-      gradient: "from-green-500 to-emerald-500",
+      bgColor: "bg-green-500",
     },
     {
-      icon: <MapPin className="h-8 w-8 text-blue-600" />,
+      icon: <MapPin className="h-8 w-8 text-white" />,
       title: "Metadata Perangkat",
       description: "Akses informasi perangkat yang komprehensif termasuk tanggal registrasi, status operasional, dan level baterai.",
-      gradient: "from-blue-500 to-cyan-500",
+      bgColor: "bg-blue-500",
     },
     {
-      icon: <CloudRain className="h-8 w-8 text-indigo-600" />,
+      icon: <CloudRain className="h-8 w-8 text-white" />,
       title: "Pemantauan Multi-Parameter",
       description: "Lacak berbagai parameter cuaca secara bersamaan untuk analisis yang lebih mendalam.",
-      gradient: "from-indigo-500 to-purple-500",
+      bgColor: "bg-indigo-500",
     },
     {
-      icon: <Battery className="h-8 w-8 text-orange-600" />,
+      icon: <Battery className="h-8 w-8 text-white" />,
       title: "Kesehatan Perangkat",
       description: "Pantau kesehatan dan konektivitas perangkat secara real-time untuk memastikan keandalan data.",
-      gradient: "from-orange-500 to-red-500",
+      bgColor: "bg-orange-500",
     },
     {
-      icon: <BarChart3 className="h-8 w-8 text-purple-600" />,
+      icon: <BarChart3 className="h-8 w-8 text-white" />,
       title: "Analitik Tingkat Lanjut",
       description: "Manfaatkan analitik canggih untuk wawasan prediktif dan pengambilan keputusan yang lebih baik.",
-      gradient: "from-purple-500 to-pink-500",
+      bgColor: "bg-purple-500",
     },
     {
-      icon: <Bell className="h-8 w-8 text-red-600" />,
+      icon: <Bell className="h-8 w-8 text-white" />,
       title: "Peringatan Cerdas",
       description: "Terima peringatan otomatis untuk peristiwa cuaca penting dan anomali perangkat.",
-      gradient: "from-red-500 to-rose-500",
+      bgColor: "bg-red-500",
     },
   ]
 
@@ -175,13 +175,13 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+              <div className="p-2 bg-blue-600 rounded-lg">
                 <CloudRain className="h-6 w-6 text-white" />
               </div>
               <span className="ml-3 text-xl font-bold text-gray-900">Infraseis Hidrometeorologi</span>
@@ -193,9 +193,7 @@ export default function LandingPage() {
                 </Button>
               </Link>
               <Link href="/login">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Mulai
-                </Button>
+                <Button className="bg-blue-600 hover:bg-blue-700">Mulai</Button>
               </Link>
             </div>
           </div>
@@ -206,7 +204,7 @@ export default function LandingPage() {
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
-            <Badge className="mb-6 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 border-blue-200">
+            <Badge className="mb-6 bg-blue-100 text-blue-800 border-blue-200">
               <TrendingUp className="h-3 w-3 mr-1" />
               Analisis Tren & Intelijen Perangkat
             </Badge>
@@ -221,7 +219,7 @@ export default function LandingPage() {
               <Link href="/login">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-3"
+                  className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
                 >
                   Mulai Memantau
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -249,7 +247,7 @@ export default function LandingPage() {
       </section>
 
       {/* Trend Analysis Section */}
-      <section className="py-16 bg-gradient-to-r from-green-50 to-blue-50">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Indikator Tren Visual</h2>
@@ -276,7 +274,7 @@ export default function LandingPage() {
       </section>
 
       {/* Device Metadata Section */}
-      <section className="py-16 bg-gradient-to-r from-purple-50 to-orange-50">
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Intelijen Perangkat Komprehensif</h2>
@@ -316,11 +314,11 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50"
+                className="hover:shadow-xl transition-all duration-300 border-0 bg-white"
               >
                 <CardHeader>
                   <div
-                    className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-lg flex items-center justify-center mb-4`}
+                    className={`w-16 h-16 ${feature.bgColor} rounded-lg flex items-center justify-center mb-4`}
                   >
                     {feature.icon}
                   </div>
@@ -336,7 +334,7 @@ export default function LandingPage() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -364,7 +362,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20 bg-blue-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div>
@@ -387,41 +385,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Dipercaya oleh Profesional Cuaca</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Lihat bagaimana analisis tren dan intelijen perangkat mengubah pemantauan cuaca
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 mb-4 italic">"{testimonial.content}"</p>
-                  <div>
-                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-500">
-                      {testimonial.role} di {testimonial.company}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
             Siap untuk Meningkatkan Pemantauan Cuaca Anda?
@@ -433,7 +398,7 @@ export default function LandingPage() {
             <Link href="/login">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-3"
+                className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
               >
                 Mulai Memantau Sekarang
                 <TrendingUp className="ml-2 h-5 w-5" />
@@ -458,7 +423,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
-                <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+                <div className="p-2 bg-blue-600 rounded-lg">
                   <CloudRain className="h-6 w-6 text-white" />
                 </div>
                 <span className="ml-3 text-xl font-bold">Infraseis Hidrometeorologi</span>

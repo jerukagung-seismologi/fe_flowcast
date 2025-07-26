@@ -54,3 +54,5 @@ export const useAuth = () => {
 
   return authState
 }
+export { UserProfile }
+
