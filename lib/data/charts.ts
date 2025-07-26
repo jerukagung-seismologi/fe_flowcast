@@ -1,9 +1,10 @@
-import { fetchDevices, type Device } from "./devices"
+import { fetchDevices } from "./devices"
 
 export interface ChartDataPoint {
   timestamp: string
+  timeLabel: string
   value: number
-  label?: string
+  trend?: "up" | "down" | "stable"
 }
 
 export interface WaterLevelData {
@@ -34,94 +35,90 @@ export interface WeatherTrend {
 }
 
 // Generate mock time series data
-function generateTimeSeriesData(
-  baseValue: number,
-  variance: number,
-  points: number,
-  interval = 60000, // 1 minute
-): ChartDataPoint[] {
+const generateTimeSeriesData = (hours: number, baseValue: number, variance: number): ChartDataPoint[] => {
   const data: ChartDataPoint[] = []
-  const now = Date.now()
+  const now = new Date()
 
-  for (let i = points - 1; i >= 0; i--) {
-    const timestamp = new Date(now - i * interval)
-    const value = Math.max(0, baseValue + (Math.random() - 0.5) * variance)
+  for (let i = hours; i >= 0; i--) {
+    const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000)
+    const value = baseValue + (Math.random() - 0.5) * variance
+    const prevValue = i < hours ? data[data.length - 1]?.value || baseValue : baseValue
+
+    let trend: "up" | "down" | "stable" = "stable"
+    if (value > prevValue + 0.1) trend = "up"
+    else if (value < prevValue - 0.1) trend = "down"
 
     data.push({
       timestamp: timestamp.toISOString(),
-      value: Number(value.toFixed(2)),
+      timeLabel: timestamp.toLocaleTimeString(),
+      value: Math.max(0, value),
+      trend,
     })
   }
 
   return data
 }
 
-// Fetch water level data for charts
 export async function fetchWaterLevelData(userId: string, deviceId?: string): Promise<WaterLevelData> {
   try {
     const devices = await fetchDevices(userId)
 
-    let targetDevice: Device
-    if (deviceId) {
-      const device = devices.find((d) => d.id === deviceId)
-      if (!device) {
-        throw new Error("Device not found")
-      }
-      targetDevice = device
-    } else {
-      // Use first online device or first device
-      targetDevice = devices.find((d) => d.status === "online") || devices[0]
-      if (!targetDevice) {
-        throw new Error("No devices found")
+    if (devices.length === 0) {
+      return {
+        current: [],
+        historical: [],
+        prediction: [],
       }
     }
 
-    const currentValue = targetDevice.waterLevel.value
+    const targetDevice = deviceId ? devices.find((d) => d.id === deviceId) : devices[0]
+    const baseValue = targetDevice?.waterLevel.value || 1.5
 
     return {
-      current: generateTimeSeriesData(currentValue, 0.5, 24, 60000), // Last 24 minutes
-      historical: generateTimeSeriesData(currentValue, 1.0, 168, 3600000), // Last 7 days (hourly)
-      prediction: generateTimeSeriesData(currentValue, 0.8, 12, 3600000), // Next 12 hours
+      current: generateTimeSeriesData(24, baseValue, 0.5),
+      historical: generateTimeSeriesData(168, baseValue, 0.8), // 7 days
+      prediction: generateTimeSeriesData(12, baseValue, 0.3), // 12 hours ahead
     }
   } catch (error) {
     console.error("Error fetching water level data:", error)
-    throw new Error("Failed to fetch water level data")
+    return {
+      current: [],
+      historical: [],
+      prediction: [],
+    }
   }
 }
 
-// Fetch rainfall data for charts
 export async function fetchRainfallData(userId: string, deviceId?: string): Promise<RainfallData> {
   try {
     const devices = await fetchDevices(userId)
 
-    let targetDevice: Device
-    if (deviceId) {
-      const device = devices.find((d) => d.id === deviceId)
-      if (!device) {
-        throw new Error("Device not found")
-      }
-      targetDevice = device
-    } else {
-      targetDevice = devices.find((d) => d.status === "online") || devices[0]
-      if (!targetDevice) {
-        throw new Error("No devices found")
+    if (devices.length === 0) {
+      return {
+        hourly: [],
+        daily: [],
+        monthly: [],
       }
     }
 
-    const currentValue = targetDevice.rainfall.value
+    const targetDevice = deviceId ? devices.find((d) => d.id === deviceId) : devices[0]
+    const baseValue = targetDevice?.rainfall.value || 5
 
     return {
-      hourly: generateTimeSeriesData(currentValue, 5, 24, 3600000), // Last 24 hours
-      daily: generateTimeSeriesData(currentValue * 24, 20, 30, 86400000), // Last 30 days
-      monthly: generateTimeSeriesData(currentValue * 24 * 30, 100, 12, 2592000000), // Last 12 months
+      hourly: generateTimeSeriesData(24, baseValue, 10),
+      daily: generateTimeSeriesData(30, baseValue * 24, 50), // 30 days
+      monthly: generateTimeSeriesData(12, baseValue * 24 * 30, 200), // 12 months
     }
   } catch (error) {
     console.error("Error fetching rainfall data:", error)
-    throw new Error("Failed to fetch rainfall data")
+    return {
+      hourly: [],
+      daily: [],
+      monthly: [],
+    }
   }
 }
 
-// Fetch comparison data across devices
 export async function fetchComparisonData(userId: string): Promise<ComparisonData> {
   try {
     const devices = await fetchDevices(userId)
@@ -143,135 +140,91 @@ export async function fetchComparisonData(userId: string): Promise<ComparisonDat
     }
   } catch (error) {
     console.error("Error fetching comparison data:", error)
-    throw new Error("Failed to fetch comparison data")
+    return {
+      devices: [],
+      waterLevel: [],
+      rainfall: [],
+      temperature: [],
+    }
   }
 }
 
-// Fetch weather trends
 export async function fetchWeatherTrends(userId: string): Promise<WeatherTrend[]> {
   try {
     const devices = await fetchDevices(userId)
-    const onlineDevices = devices.filter((d) => d.status === "online")
 
-    if (onlineDevices.length === 0) {
+    if (devices.length === 0) {
       return []
     }
 
-    // Calculate averages across all online devices
-    const avgWaterLevel = onlineDevices.reduce((sum, d) => sum + d.waterLevel.value, 0) / onlineDevices.length
-    const avgRainfall = onlineDevices.reduce((sum, d) => sum + d.rainfall.value, 0) / onlineDevices.length
-    const avgTemperature = onlineDevices.reduce((sum, d) => sum + d.temperature.value, 0) / onlineDevices.length
-    const avgHumidity = onlineDevices.reduce((sum, d) => sum + d.humidity.value, 0) / onlineDevices.length
-    const avgWindSpeed = onlineDevices.reduce((sum, d) => sum + d.windSpeed.value, 0) / onlineDevices.length
-    const avgPressure = onlineDevices.reduce((sum, d) => sum + d.pressure.value, 0) / onlineDevices.length
+    // Calculate averages across all devices
+    const avgWaterLevel = devices.reduce((sum, d) => sum + d.waterLevel.value, 0) / devices.length
+    const avgRainfall = devices.reduce((sum, d) => sum + d.rainfall.value, 0) / devices.length
+    const avgTemperature = devices.reduce((sum, d) => sum + d.temperature.value, 0) / devices.length
+    const avgHumidity = devices.reduce((sum, d) => sum + d.humidity.value, 0) / devices.length
+    const avgWindSpeed = devices.reduce((sum, d) => sum + d.windSpeed.value, 0) / devices.length
+    const avgPressure = devices.reduce((sum, d) => sum + d.pressure.value, 0) / devices.length
 
-    const avgWaterChange = onlineDevices.reduce((sum, d) => sum + d.waterLevel.change, 0) / onlineDevices.length
-    const avgRainChange = onlineDevices.reduce((sum, d) => sum + d.rainfall.change, 0) / onlineDevices.length
-    const avgTempChange = onlineDevices.reduce((sum, d) => sum + d.temperature.change, 0) / onlineDevices.length
-    const avgHumidityChange = onlineDevices.reduce((sum, d) => sum + d.humidity.change, 0) / onlineDevices.length
-    const avgWindChange = onlineDevices.reduce((sum, d) => sum + d.windSpeed.change, 0) / onlineDevices.length
-    const avgPressureChange = onlineDevices.reduce((sum, d) => sum + d.pressure.change, 0) / onlineDevices.length
+    // Calculate average changes
+    const avgWaterChange = devices.reduce((sum, d) => sum + d.waterLevel.change, 0) / devices.length
+    const avgRainChange = devices.reduce((sum, d) => sum + d.rainfall.change, 0) / devices.length
+    const avgTempChange = devices.reduce((sum, d) => sum + d.temperature.change, 0) / devices.length
+    const avgHumidityChange = devices.reduce((sum, d) => sum + d.humidity.change, 0) / devices.length
+    const avgWindChange = devices.reduce((sum, d) => sum + d.windSpeed.change, 0) / devices.length
+    const avgPressureChange = devices.reduce((sum, d) => sum + d.pressure.change, 0) / devices.length
+
+    const getTrend = (change: number): "up" | "down" | "stable" => {
+      if (change > 0.1) return "up"
+      if (change < -0.1) return "down"
+      return "stable"
+    }
 
     return [
       {
         parameter: "Water Level",
         current: Number(avgWaterLevel.toFixed(2)),
         change: Number(avgWaterChange.toFixed(2)),
-        trend: Math.abs(avgWaterChange) < 0.1 ? "stable" : avgWaterChange > 0 ? "up" : "down",
+        trend: getTrend(avgWaterChange),
         unit: "m",
       },
       {
         parameter: "Rainfall",
         current: Number(avgRainfall.toFixed(1)),
         change: Number(avgRainChange.toFixed(1)),
-        trend: Math.abs(avgRainChange) < 1 ? "stable" : avgRainChange > 0 ? "up" : "down",
+        trend: getTrend(avgRainChange),
         unit: "mm",
       },
       {
         parameter: "Temperature",
         current: Number(avgTemperature.toFixed(1)),
         change: Number(avgTempChange.toFixed(1)),
-        trend: Math.abs(avgTempChange) < 0.5 ? "stable" : avgTempChange > 0 ? "up" : "down",
+        trend: getTrend(avgTempChange),
         unit: "°C",
       },
       {
         parameter: "Humidity",
         current: Number(avgHumidity.toFixed(0)),
-        change: Number(avgHumidityChange.toFixed(1)),
-        trend: Math.abs(avgHumidityChange) < 2 ? "stable" : avgHumidityChange > 0 ? "up" : "down",
+        change: Number(avgHumidityChange.toFixed(0)),
+        trend: getTrend(avgHumidityChange),
         unit: "%",
       },
       {
         parameter: "Wind Speed",
         current: Number(avgWindSpeed.toFixed(1)),
         change: Number(avgWindChange.toFixed(1)),
-        trend: Math.abs(avgWindChange) < 1 ? "stable" : avgWindChange > 0 ? "up" : "down",
-        unit: "km/h",
+        trend: getTrend(avgWindChange),
+        unit: "m/s",
       },
       {
         parameter: "Pressure",
         current: Number(avgPressure.toFixed(0)),
-        change: Number(avgPressureChange.toFixed(1)),
-        trend: Math.abs(avgPressureChange) < 2 ? "stable" : avgPressureChange > 0 ? "up" : "down",
+        change: Number(avgPressureChange.toFixed(0)),
+        trend: getTrend(avgPressureChange),
         unit: "hPa",
       },
     ]
   } catch (error) {
     console.error("Error fetching weather trends:", error)
-    throw new Error("Failed to fetch weather trends")
-  }
-}
-
-// Fetch device performance metrics
-export async function fetchDevicePerformance(
-  userId: string,
-  deviceId: string,
-  timeRange: "24h" | "7d" | "30d" = "24h",
-): Promise<{
-  uptime: number
-  dataPoints: number
-  lastSeen: Date
-  batteryTrend: ChartDataPoint[]
-}> {
-  try {
-    const devices = await fetchDevices(userId)
-    const device = devices.find((d) => d.id === deviceId)
-
-    if (!device) {
-      throw new Error("Device not found")
-    }
-
-    // Calculate time range
-    let hours = 24
-    switch (timeRange) {
-      case "7d":
-        hours = 168
-        break
-      case "30d":
-        hours = 720
-        break
-    }
-
-    // Mock performance data
-    const uptime = device.status === "online" ? Math.random() * 20 + 80 : 0 // 80-100% if online
-    const dataPoints = Math.floor(hours * (uptime / 100))
-
-    // Generate battery trend
-    const batteryTrend = generateTimeSeriesData(
-      device.batteryLevel,
-      10,
-      Math.min(hours, 48), // Max 48 points
-      hours <= 24 ? 1800000 : hours <= 168 ? 10800000 : 43200000, // 30min, 3h, or 12h intervals
-    )
-
-    return {
-      uptime: Number(uptime.toFixed(1)),
-      dataPoints,
-      lastSeen: device.lastUpdate,
-      batteryTrend,
-    }
-  } catch (error) {
-    console.error("Error fetching device performance:", error)
-    throw new Error("Failed to fetch device performance")
+    return []
   }
 }

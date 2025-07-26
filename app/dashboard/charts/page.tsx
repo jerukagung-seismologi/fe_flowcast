@@ -44,6 +44,7 @@ import {
   type WeatherTrend,
 } from "@/lib/data/charts"
 import { fetchDevices, type Device } from "@/lib/data/devices"
+import { EmptyState } from "@/components/empty-state"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"]
 
@@ -120,6 +121,21 @@ export default function ChartsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Show empty state if no devices
+  if (!devices || devices.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t("charts.title")}</h1>
+            <p className="text-muted-foreground">{t("charts.description")}</p>
+          </div>
+        </div>
+        <EmptyState type="charts" />
       </div>
     )
   }

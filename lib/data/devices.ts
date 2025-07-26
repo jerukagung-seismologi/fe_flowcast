@@ -2,7 +2,6 @@ import {
   collection,
   doc,
   getDocs,
-  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -10,36 +9,60 @@ import {
   where,
   orderBy,
   serverTimestamp,
-  Timestamp,
 } from "firebase/firestore"
-import { ref, push, set } from "firebase/database"
-import { db, realtimeDb } from "@/lib/firebase"
+import { ref, push } from "firebase/database"
+import { db, rtdb } from "@/lib/firebase"
 
 export interface Device {
   id: string
-  userId: string
   name: string
   location: string
   status: "online" | "offline"
+  waterLevel: {
+    value: number
+    trend: "up" | "down" | "stable"
+    change: number
+  }
+  rainfall: {
+    value: number
+    trend: "up" | "down" | "stable"
+    change: number
+  }
+  temperature: {
+    value: number
+    trend: "up" | "down" | "stable"
+    change: number
+  }
+  humidity: {
+    value: number
+    trend: "up" | "down" | "stable"
+    change: number
+  }
+  windSpeed: {
+    value: number
+    trend: "up" | "down" | "stable"
+    change: number
+  }
+  pressure: {
+    value: number
+    trend: "up" | "down" | "stable"
+    change: number
+  }
+  threshold: number
+  lastUpdate: Date
   registrationDate: string
   batteryLevel: number
-  coordinates: { lat: number; lng: number }
-  waterLevel: { value: number; trend: "up" | "down" | "stable"; change: number }
-  rainfall: { value: number; trend: "up" | "down" | "stable"; change: number }
-  temperature: { value: number; trend: "up" | "down" | "stable"; change: number }
-  humidity: { value: number; trend: "up" | "down" | "stable"; change: number }
-  windSpeed: { value: number; trend: "up" | "down" | "stable"; change: number }
-  pressure: { value: number; trend: "up" | "down" | "stable"; change: number }
-  lastUpdate: Date
-  threshold: number
+  coordinates: {
+    lat: number
+    lng: number
+  }
   trends: {
     waterLevel: "up" | "down" | "stable"
     temperature: "up" | "down" | "stable"
     rainfall: "up" | "down" | "stable"
   }
-  deviceToken?: string
-  createdAt: Date
-  updatedAt: Date
+  userId: string
+  authToken?: string
 }
 
 export interface DeviceStats {
@@ -49,165 +72,122 @@ export interface DeviceStats {
   avgBatteryLevel: number
 }
 
-export interface DeviceAuthToken {
-  deviceId: string
+export interface DeviceToken {
   token: string
-  createdAt: Date
+  deviceId: string
+  userId: string
   expiresAt: Date
+  createdAt: Date
 }
 
-// Convert Firestore timestamp to Date
-const convertTimestamp = (timestamp: any): Date => {
-  if (timestamp instanceof Timestamp) {
-    return timestamp.toDate()
+// Generate mock sensor data with trends
+const generateSensorData = () => {
+  const trends = ["up", "down", "stable"] as const
+  return {
+    waterLevel: {
+      value: Math.random() * 5,
+      trend: trends[Math.floor(Math.random() * trends.length)],
+      change: (Math.random() - 0.5) * 0.5,
+    },
+    rainfall: {
+      value: Math.random() * 50,
+      trend: trends[Math.floor(Math.random() * trends.length)],
+      change: (Math.random() - 0.5) * 10,
+    },
+    temperature: {
+      value: 20 + Math.random() * 15,
+      trend: trends[Math.floor(Math.random() * trends.length)],
+      change: (Math.random() - 0.5) * 5,
+    },
+    humidity: {
+      value: 40 + Math.random() * 40,
+      trend: trends[Math.floor(Math.random() * trends.length)],
+      change: (Math.random() - 0.5) * 10,
+    },
+    windSpeed: {
+      value: Math.random() * 20,
+      trend: trends[Math.floor(Math.random() * trends.length)],
+      change: (Math.random() - 0.5) * 5,
+    },
+    pressure: {
+      value: 1000 + Math.random() * 50,
+      trend: trends[Math.floor(Math.random() * trends.length)],
+      change: (Math.random() - 0.5) * 10,
+    },
   }
-  if (timestamp?.seconds) {
-    return new Date(timestamp.seconds * 1000)
-  }
-  return new Date(timestamp)
 }
 
-// Fetch all devices for a specific user
 export async function fetchDevices(userId: string): Promise<Device[]> {
   try {
     const devicesRef = collection(db, "devices")
     const q = query(devicesRef, where("userId", "==", userId), orderBy("createdAt", "desc"))
-
     const querySnapshot = await getDocs(q)
-    const devices: Device[] = []
 
+    const devices: Device[] = []
     querySnapshot.forEach((doc) => {
       const data = doc.data()
+      const sensorData = generateSensorData()
+
       devices.push({
         id: doc.id,
-        ...data,
-        createdAt: convertTimestamp(data.createdAt),
-        updatedAt: convertTimestamp(data.updatedAt),
-        lastUpdate: convertTimestamp(data.lastUpdate),
-      } as Device)
+        name: data.name,
+        location: data.location,
+        status: Math.random() > 0.3 ? "online" : "offline",
+        ...sensorData,
+        threshold: data.threshold || 2.0,
+        lastUpdate: new Date(Date.now() - Math.random() * 3600000), // Random time within last hour
+        registrationDate: data.registrationDate || new Date().toISOString().split("T")[0],
+        batteryLevel: data.batteryLevel || Math.floor(Math.random() * 100),
+        coordinates: data.coordinates || { lat: -6.2088, lng: 106.8456 },
+        trends: data.trends || {
+          waterLevel: sensorData.waterLevel.trend,
+          temperature: sensorData.temperature.trend,
+          rainfall: sensorData.rainfall.trend,
+        },
+        userId: data.userId,
+        authToken: data.authToken,
+      })
     })
 
     return devices
   } catch (error) {
     console.error("Error fetching devices:", error)
-    throw new Error("Failed to fetch devices")
+    return []
   }
 }
 
-// Fetch device by ID (with user verification)
-export async function fetchDeviceById(deviceId: string, userId: string): Promise<Device | null> {
-  try {
-    const deviceRef = doc(db, "devices", deviceId)
-    const deviceSnap = await getDoc(deviceRef)
-
-    if (!deviceSnap.exists()) {
-      return null
-    }
-
-    const data = deviceSnap.data()
-
-    // Verify device belongs to user
-    if (data.userId !== userId) {
-      throw new Error("Unauthorized access to device")
-    }
-
-    return {
-      id: deviceSnap.id,
-      ...data,
-      createdAt: convertTimestamp(data.createdAt),
-      updatedAt: convertTimestamp(data.updatedAt),
-      lastUpdate: convertTimestamp(data.lastUpdate),
-    } as Device
-  } catch (error) {
-    console.error("Error fetching device:", error)
-    throw new Error("Failed to fetch device")
-  }
-}
-
-// Calculate device statistics for a user
 export async function fetchDeviceStats(userId: string): Promise<DeviceStats> {
   try {
     const devices = await fetchDevices(userId)
-
     const onlineDevices = devices.filter((d) => d.status === "online").length
     const alertDevices = devices.filter((d) => d.waterLevel.value > d.threshold).length
     const avgBatteryLevel =
-      devices.length > 0 ? devices.reduce((sum, d) => sum + d.batteryLevel, 0) / devices.length : 0
+      devices.length > 0 ? Math.round(devices.reduce((sum, d) => sum + d.batteryLevel, 0) / devices.length) : 0
 
     return {
       totalDevices: devices.length,
       onlineDevices,
       alertDevices,
-      avgBatteryLevel: Number(avgBatteryLevel.toFixed(1)),
+      avgBatteryLevel,
     }
   } catch (error) {
     console.error("Error fetching device stats:", error)
-    throw new Error("Failed to fetch device statistics")
+    return {
+      totalDevices: 0,
+      onlineDevices: 0,
+      alertDevices: 0,
+      avgBatteryLevel: 0,
+    }
   }
 }
 
-// Generate device authentication token
-export async function generateDeviceToken(deviceId: string, userId: string): Promise<DeviceAuthToken> {
-  try {
-    // Verify device belongs to user
-    const device = await fetchDeviceById(deviceId, userId)
-    if (!device) {
-      throw new Error("Device not found or unauthorized")
-    }
-
-    // Create custom claims for the device
-    const customClaims = {
-      deviceId,
-      userId,
-      type: "device",
-      permissions: ["read_sensors", "write_data"],
-    }
-
-    // Generate custom token (Note: This should be done on the server side in production)
-    const token = Math.random().toString(36).substring(2) + Date.now().toString(36)
-
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 30) // 30 days expiry
-
-    const deviceToken: DeviceAuthToken = {
-      deviceId,
-      token,
-      createdAt: new Date(),
-      expiresAt,
-    }
-
-    // Store token in Firestore
-    const tokenRef = doc(db, "deviceTokens", deviceId)
-    await set(tokenRef, {
-      ...deviceToken,
-      userId,
-      createdAt: serverTimestamp(),
-      expiresAt: Timestamp.fromDate(expiresAt),
-    })
-
-    // Update device with token reference
-    const deviceRef = doc(db, "devices", deviceId)
-    await updateDoc(deviceRef, {
-      deviceToken: token,
-      updatedAt: serverTimestamp(),
-    })
-
-    return deviceToken
-  } catch (error) {
-    console.error("Error generating device token:", error)
-    throw new Error("Failed to generate device token")
-  }
-}
-
-// Add new device
 export async function addDevice(
   deviceData: Omit<
     Device,
     | "id"
     | "userId"
+    | "status"
     | "lastUpdate"
-    | "createdAt"
-    | "updatedAt"
     | "waterLevel"
     | "rainfall"
     | "temperature"
@@ -218,297 +198,120 @@ export async function addDevice(
   userId: string,
 ): Promise<Device> {
   try {
-    const newDeviceData = {
+    const sensorData = generateSensorData()
+    const docRef = await addDoc(collection(db, "devices"), {
       ...deviceData,
       userId,
-      status: "offline" as const,
-      waterLevel: { value: 0, trend: "stable" as const, change: 0 },
-      rainfall: { value: 0, trend: "stable" as const, change: 0 },
-      temperature: { value: 0, trend: "stable" as const, change: 0 },
-      humidity: { value: 0, trend: "stable" as const, change: 0 },
-      windSpeed: { value: 0, trend: "stable" as const, change: 0 },
-      pressure: { value: 0, trend: "stable" as const, change: 0 },
-      lastUpdate: serverTimestamp(),
+      status: "offline",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    }
+    })
 
-    const devicesRef = collection(db, "devices")
-    const docRef = await addDoc(devicesRef, newDeviceData)
+    const newDevice: Device = {
+      id: docRef.id,
+      ...deviceData,
+      userId,
+      status: "offline",
+      lastUpdate: new Date(),
+      ...sensorData,
+    }
 
     // Log device creation
-    await logDeviceEvent(docRef.id, userId, "device_created", "Device successfully created", "low")
+    await logDeviceEvent(userId, docRef.id, "configuration", "Device created", "low")
 
-    // Fetch the created device
-    const createdDevice = await fetchDeviceById(docRef.id, userId)
-    if (!createdDevice) {
-      throw new Error("Failed to retrieve created device")
-    }
-
-    return createdDevice
+    return newDevice
   } catch (error) {
     console.error("Error adding device:", error)
-    throw new Error("Failed to add device")
+    throw error
   }
 }
 
-// Update device
-export async function updateDevice(deviceId: string, updates: Partial<Device>, userId: string): Promise<Device | null> {
+export async function updateDevice(
+  deviceId: string,
+  deviceData: Partial<Device>,
+  userId: string,
+): Promise<Device | null> {
   try {
-    // Verify device belongs to user
-    const existingDevice = await fetchDeviceById(deviceId, userId)
-    if (!existingDevice) {
-      throw new Error("Device not found or unauthorized")
-    }
-
     const deviceRef = doc(db, "devices", deviceId)
-    const updateData = {
-      ...updates,
+    await updateDoc(deviceRef, {
+      ...deviceData,
       updatedAt: serverTimestamp(),
-    }
-
-    // Remove fields that shouldn't be updated directly
-    delete updateData.id
-    delete updateData.userId
-    delete updateData.createdAt
-
-    await updateDoc(deviceRef, updateData)
+    })
 
     // Log device update
-    await logDeviceEvent(deviceId, userId, "device_updated", "Device configuration updated", "low")
+    await logDeviceEvent(userId, deviceId, "configuration", "Device updated", "low")
 
-    // Return updated device
-    return await fetchDeviceById(deviceId, userId)
+    // Fetch updated device
+    const devices = await fetchDevices(userId)
+    return devices.find((d) => d.id === deviceId) || null
   } catch (error) {
     console.error("Error updating device:", error)
-    throw new Error("Failed to update device")
+    return null
   }
 }
 
-// Delete device
 export async function deleteDevice(deviceId: string, userId: string): Promise<boolean> {
   try {
-    // Verify device belongs to user
-    const device = await fetchDeviceById(deviceId, userId)
-    if (!device) {
-      throw new Error("Device not found or unauthorized")
-    }
-
-    // Delete device document
-    const deviceRef = doc(db, "devices", deviceId)
-    await deleteDoc(deviceRef)
-
-    // Delete device token if exists
-    const tokenRef = doc(db, "deviceTokens", deviceId)
-    await deleteDoc(tokenRef)
+    await deleteDoc(doc(db, "devices", deviceId))
 
     // Log device deletion
-    await logDeviceEvent(deviceId, userId, "device_deleted", "Device removed from system", "medium")
+    await logDeviceEvent(userId, deviceId, "configuration", "Device deleted", "medium")
 
     return true
   } catch (error) {
     console.error("Error deleting device:", error)
-    throw new Error("Failed to delete device")
+    return false
   }
 }
 
-// Update device sensor data (called by IoT devices)
-export async function updateDeviceSensorData(
-  deviceId: string,
-  sensorData: {
-    waterLevel?: number
-    rainfall?: number
-    temperature?: number
-    humidity?: number
-    windSpeed?: number
-    pressure?: number
-    batteryLevel?: number
-  },
-  deviceToken: string,
-): Promise<boolean> {
+export async function generateDeviceToken(deviceId: string, userId: string): Promise<DeviceToken> {
   try {
-    // Verify device token
-    const tokenRef = doc(db, "deviceTokens", deviceId)
-    const tokenSnap = await getDoc(tokenRef)
+    const token = `device_${deviceId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+    const createdAt = new Date()
 
-    if (!tokenSnap.exists() || tokenSnap.data().token !== deviceToken) {
-      throw new Error("Invalid device token")
+    const tokenData: DeviceToken = {
+      token,
+      deviceId,
+      userId,
+      expiresAt,
+      createdAt,
     }
 
-    const tokenData = tokenSnap.data()
-    const expiresAt = convertTimestamp(tokenData.expiresAt)
+    // Store token in Firestore
+    await addDoc(collection(db, "deviceTokens"), {
+      ...tokenData,
+      createdAt: serverTimestamp(),
+    })
 
-    if (expiresAt < new Date()) {
-      throw new Error("Device token expired")
-    }
-
-    // Calculate trends (simplified logic)
-    const deviceRef = doc(db, "devices", deviceId)
-    const deviceSnap = await getDoc(deviceRef)
-
-    if (!deviceSnap.exists()) {
-      throw new Error("Device not found")
-    }
-
-    const currentData = deviceSnap.data()
-    const updates: any = {
-      status: "online",
-      lastUpdate: serverTimestamp(),
+    // Update device with token
+    await updateDoc(doc(db, "devices", deviceId), {
+      authToken: token,
       updatedAt: serverTimestamp(),
-    }
+    })
 
-    // Update sensor values with trend calculation
-    if (sensorData.waterLevel !== undefined) {
-      const change = sensorData.waterLevel - (currentData.waterLevel?.value || 0)
-      updates.waterLevel = {
-        value: sensorData.waterLevel,
-        change,
-        trend: Math.abs(change) < 0.1 ? "stable" : change > 0 ? "up" : "down",
-      }
-    }
+    // Log token generation
+    await logDeviceEvent(userId, deviceId, "configuration", "Authentication token generated", "low")
 
-    if (sensorData.temperature !== undefined) {
-      const change = sensorData.temperature - (currentData.temperature?.value || 0)
-      updates.temperature = {
-        value: sensorData.temperature,
-        change,
-        trend: Math.abs(change) < 0.5 ? "stable" : change > 0 ? "up" : "down",
-      }
-    }
-
-    if (sensorData.rainfall !== undefined) {
-      const change = sensorData.rainfall - (currentData.rainfall?.value || 0)
-      updates.rainfall = {
-        value: sensorData.rainfall,
-        change,
-        trend: Math.abs(change) < 1 ? "stable" : change > 0 ? "up" : "down",
-      }
-    }
-
-    if (sensorData.humidity !== undefined) {
-      const change = sensorData.humidity - (currentData.humidity?.value || 0)
-      updates.humidity = {
-        value: sensorData.humidity,
-        change,
-        trend: Math.abs(change) < 2 ? "stable" : change > 0 ? "up" : "down",
-      }
-    }
-
-    if (sensorData.windSpeed !== undefined) {
-      const change = sensorData.windSpeed - (currentData.windSpeed?.value || 0)
-      updates.windSpeed = {
-        value: sensorData.windSpeed,
-        change,
-        trend: Math.abs(change) < 1 ? "stable" : change > 0 ? "up" : "down",
-      }
-    }
-
-    if (sensorData.pressure !== undefined) {
-      const change = sensorData.pressure - (currentData.pressure?.value || 0)
-      updates.pressure = {
-        value: sensorData.pressure,
-        change,
-        trend: Math.abs(change) < 2 ? "stable" : change > 0 ? "up" : "down",
-      }
-    }
-
-    if (sensorData.batteryLevel !== undefined) {
-      updates.batteryLevel = sensorData.batteryLevel
-    }
-
-    // Update trends summary
-    updates.trends = {
-      waterLevel: updates.waterLevel?.trend || currentData.trends?.waterLevel || "stable",
-      temperature: updates.temperature?.trend || currentData.trends?.temperature || "stable",
-      rainfall: updates.rainfall?.trend || currentData.trends?.rainfall || "stable",
-    }
-
-    await updateDoc(deviceRef, updates)
-
-    // Log sensor data update
-    await logDeviceEvent(
-      deviceId,
-      tokenData.userId,
-      "sensor_data",
-      `Sensor data updated: ${Object.keys(sensorData).join(", ")}`,
-      "low",
-    )
-
-    // Check for alerts
-    if (sensorData.waterLevel && sensorData.waterLevel > currentData.threshold) {
-      await logDeviceEvent(
-        deviceId,
-        tokenData.userId,
-        "alert",
-        `Water level (${sensorData.waterLevel}m) exceeded threshold (${currentData.threshold}m)`,
-        "high",
-      )
-    }
-
-    return true
+    return tokenData
   } catch (error) {
-    console.error("Error updating sensor data:", error)
-    throw new Error("Failed to update sensor data")
+    console.error("Error generating device token:", error)
+    throw error
   }
 }
 
-// Log device event to Realtime Database
-export async function logDeviceEvent(
-  deviceId: string,
-  userId: string,
-  eventType:
-    | "alert"
-    | "connection"
-    | "disconnection"
-    | "configuration"
-    | "threshold"
-    | "sensor_data"
-    | "device_created"
-    | "device_updated"
-    | "device_deleted",
-  message: string,
-  severity: "low" | "medium" | "high",
-): Promise<void> {
+async function logDeviceEvent(userId: string, deviceId: string, type: string, message: string, severity: string) {
   try {
-    const logsRef = ref(realtimeDb, `logs/${userId}`)
-    const newLogRef = push(logsRef)
-
-    const logEntry = {
-      id: newLogRef.key,
+    const logsRef = ref(rtdb, `logs/${userId}`)
+    await push(logsRef, {
       deviceId,
-      timestamp: Date.now(),
-      type: eventType,
+      type,
       message,
       severity,
+      timestamp: Date.now(),
       device: `Device ${deviceId}`,
-    }
-
-    await set(newLogRef, logEntry)
+    })
   } catch (error) {
     console.error("Error logging device event:", error)
-    // Don't throw error for logging failures to avoid breaking main functionality
   }
-}
-
-// Fetch devices with real-time updates (simulated)
-export async function fetchDevicesRealtime(userId: string): Promise<Device[]> {
-  const devices = await fetchDevices(userId)
-
-  // In a real implementation, you would set up real-time listeners here
-  return devices.map((device) => ({
-    ...device,
-    waterLevel: {
-      ...device.waterLevel,
-      value: Math.max(0, device.waterLevel.value + (Math.random() - 0.5) * 0.1),
-    },
-    temperature: {
-      ...device.temperature,
-      value: device.temperature.value + (Math.random() - 0.5) * 2,
-    },
-    rainfall: {
-      ...device.rainfall,
-      value: Math.max(0, device.rainfall.value + (Math.random() - 0.5) * 5),
-    },
-    lastUpdate: new Date(),
-  }))
 }

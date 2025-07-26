@@ -24,6 +24,7 @@ import { fetchDevices, fetchDeviceStats, type Device, type DeviceStats } from "@
 import { fetchRecentAlerts, type LogEvent } from "@/lib/data/logs"
 import { fetchWeatherStats } from "@/lib/data/weather"
 import { useLanguage } from "@/hooks/useLanguage"
+import { EmptyState } from "@/components/empty-state"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -89,6 +90,11 @@ export default function DashboardPage() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     )
+  }
+
+  // Show empty state if no devices
+  if (!devices || devices.length === 0) {
+    return <EmptyState type="dashboard" />
   }
 
   return (

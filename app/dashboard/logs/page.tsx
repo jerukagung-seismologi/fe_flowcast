@@ -10,6 +10,7 @@ import { Search, Filter, AlertTriangle, CheckCircle, Settings, Wifi, WifiOff, Ca
 import { fetchLogs, fetchFilteredLogs, type LogEvent, type LogFilters } from "@/lib/data/logs"
 import { useAuth } from "@/hooks/useAuth"
 import { useLanguage } from "@/hooks/useLanguage"
+import { EmptyState } from "@/components/empty-state"
 
 export default function LogsPage() {
   const { user } = useAuth()
@@ -123,6 +124,19 @@ export default function LogsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Show empty state if no logs
+  if (!logs || logs.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t("logs.title")}</h1>
+          <p className="text-muted-foreground">{t("logs.description")}</p>
+        </div>
+        <EmptyState type="logs" />
       </div>
     )
   }

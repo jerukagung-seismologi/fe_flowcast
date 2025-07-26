@@ -43,6 +43,7 @@ import {
 } from "@/lib/data/devices"
 import { useAuth } from "@/hooks/useAuth"
 import { useLanguage } from "@/hooks/useLanguage"
+import { EmptyState } from "@/components/empty-state"
 
 export default function DevicesPage() {
   const { user } = useAuth()
@@ -230,6 +231,100 @@ export default function DevicesPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Show empty state if no devices
+  if (!devices || devices.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{t("devices.title")}</h1>
+            <p className="text-muted-foreground">{t("devices.description")}</p>
+          </div>
+        </div>
+        <EmptyState type="devices" onAction={() => setIsAddDialogOpen(true)} />
+
+        {/* Add Device Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("devices.addNewDevice")}</DialogTitle>
+              <DialogDescription>{t("devices.addDeviceDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">{t("devices.stationName")}</Label>
+                <Input
+                  id="name"
+                  placeholder="e.g., Weather Station Jakarta Timur"
+                  value={newDevice.name}
+                  onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="location">{t("devices.location")}</Label>
+                <Input
+                  id="location"
+                  placeholder="e.g., Menteng"
+                  value={newDevice.location}
+                  onChange={(e) => setNewDevice({ ...newDevice, location: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="latitude">{t("devices.latitude")}</Label>
+                  <Input
+                    id="latitude"
+                    placeholder="-6.2088"
+                    value={newDevice.latitude}
+                    onChange={(e) => setNewDevice({ ...newDevice, latitude: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="longitude">{t("devices.longitude")}</Label>
+                  <Input
+                    id="longitude"
+                    placeholder="106.8456"
+                    value={newDevice.longitude}
+                    onChange={(e) => setNewDevice({ ...newDevice, longitude: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="threshold">{t("devices.alertThreshold")}</Label>
+                  <Input
+                    id="threshold"
+                    type="number"
+                    step="0.1"
+                    value={newDevice.threshold}
+                    onChange={(e) => setNewDevice({ ...newDevice, threshold: Number.parseFloat(e.target.value) })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="battery">{t("devices.initialBattery")}</Label>
+                  <Input
+                    id="battery"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={newDevice.batteryLevel}
+                    onChange={(e) => setNewDevice({ ...newDevice, batteryLevel: Number.parseInt(e.target.value) })}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                {t("common.cancel")}
+              </Button>
+              <Button onClick={handleAddDevice}>{t("devices.addDevice")}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
