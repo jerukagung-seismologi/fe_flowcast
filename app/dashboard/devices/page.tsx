@@ -15,14 +15,13 @@ import { useToast } from "@/hooks/use-toast"
 import { Plus } from "lucide-react"
 
 import {
-  fetchDevices,
   addDevice,
   updateDevice,
   deleteDevice,
   generateDeviceToken,
   type Device,
-  type DeviceWithSensors,
-} from "@/lib/data/FetchingDevice"
+} from "@/lib/data/FetchingDevices"
+import { fetchDevicesWithSensors, type DeviceWithSensors } from "@/lib/data/FetchingData"
 import { useAuth } from "@/hooks/useAuth"
 import { EmptyState } from "@/components/empty-state"
 import { DeviceCard } from "@/components/device/DeviceCard"
@@ -50,7 +49,7 @@ export default function DevicesPage() {
 
     try {
       setLoading(true)
-      const devicesData = await fetchDevices(user.uid)
+      const devicesData = await fetchDevicesWithSensors(user.uid)
       setDevices(devicesData)
     } catch (error) {
       console.error("Error loading devices:", error)
@@ -107,8 +106,8 @@ export default function DevicesPage() {
     if (!editingDevice || !user?.uid) return
 
     try {
-      const { id, name, location, coordinates } = editingDevice
-      const updateData = { name, location, coordinates }
+      const { id, name, location, coordinates, threshold } = editingDevice
+      const updateData = { name, location, coordinates, threshold }
       const updatedDevice = await updateDevice(id, updateData)
       if (updatedDevice) {
         await loadDevices() // Reload to get fresh data
@@ -136,6 +135,8 @@ export default function DevicesPage() {
       const success = await deleteDevice(deviceToDelete.id)
       if (success) {
         setDevices(devices.filter((d) => d.id !== deviceToDelete.id))
+        setIsDeleteDialogOpen(false)
+        setDeviceToDelete(null)
         toast({
           title: "Berhasil",
           description: `Perangkat "${deviceToDelete.name}" berhasil dihapus!`,

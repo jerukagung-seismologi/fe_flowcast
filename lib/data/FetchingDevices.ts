@@ -13,8 +13,8 @@ import {
   setDoc,
   Timestamp,
 } from "firebase/firestore"
-import { ref, set } from "firebase/database"
-import { db, rtdb } from "@/lib/FirebaseConfig"
+import { db } from "@/lib/FirebaseConfig"
+import { addLogEvent, LogEvent } from "./FetchingLogs"
 
 export interface Device {
   id: string
@@ -27,47 +27,7 @@ export interface Device {
   }
   userId: string
   authToken?: string
-}
-
-export interface DeviceWithSensors extends Device {
-  status: "online" | "offline"
-  waterLevel: {
-    value: number
-    trend: "up" | "down" | "stable"
-    change: number
-  }
-  rainfall: {
-    value: number
-    trend: "up" | "down" | "stable"
-    change: number
-  }
-  temperature: {
-    value: number
-    trend: "up" | "down" | "stable"
-    change: number
-  }
-  humidity: {
-    value: number
-    trend: "up" | "down" | "stable"
-    change: number
-  }
-  windSpeed: {
-    value: number
-    trend: "up" | "down" | "stable"
-    change: number
-  }
-  pressure: {
-    value: number
-    trend: "up" | "down" | "stable"
-    change: number
-  }
   threshold: number
-  lastUpdate: Date
-  trends: {
-    waterLevel: "up" | "down" | "stable"
-    temperature: "up" | "down" | "stable"
-    rainfall: "up" | "down" | "stable"
-  }
 }
 
 export interface DeviceToken {
@@ -80,59 +40,15 @@ const generateUniqueId = () => {
   return Math.random().toString(36).substring(2, 12)
 }
 
-// Generate mock sensor data with trends
-const generateSensorData = () => {
-  const trends = ["up", "down", "stable"] as const
-  return {
-    waterLevel: {
-      value: Math.random() * 5,
-      trend: trends[Math.floor(Math.random() * trends.length)],
-      change: (Math.random() - 0.5) * 0.5,
-    },
-    rainfall: {
-      value: Math.random() * 50,
-      trend: trends[Math.floor(Math.random() * trends.length)],
-      change: (Math.random() - 0.5) * 10,
-    },
-    temperature: {
-      value: 20 + Math.random() * 15,
-      trend: trends[Math.floor(Math.random() * trends.length)],
-      change: (Math.random() - 0.5) * 5,
-    },
-    humidity: {
-      value: 40 + Math.random() * 40,
-      trend: trends[Math.floor(Math.random() * trends.length)],
-      change: (Math.random() - 0.5) * 10,
-    },
-    windSpeed: {
-      value: Math.random() * 20,
-      trend: trends[Math.floor(Math.random() * trends.length)],
-      change: (Math.random() - 0.5) * 5,
-    },
-    pressure: {
-      value: 1000 + Math.random() * 50,
-      trend: trends[Math.floor(Math.random() * trends.length)],
-      change: (Math.random() - 0.5) * 10,
-    },
-  }
-}
-
-export async function fetchDevices(userId: string): Promise<DeviceWithSensors[]> {
+export async function fetchDevices(userId: string): Promise<Device[]> {
   try {
     const devicesRef = collection(db, "devices")
     const q = query(devicesRef, where("userId", "==", userId))
     const querySnapshot = await getDocs(q)
 
-    const devices: DeviceWithSensors[] = []
+    const devices: Device[] = []
     querySnapshot.forEach((doc) => {
       const data = doc.data()
-      const sensorData = generateSensorData()
-
-      const lastUpdateTimestamp = data.lastUpdate || data.updatedAt
-      const lastUpdate =
-        lastUpdateTimestamp instanceof Timestamp
-          ? lastUpdateTimestamp.toDate()
-          : new Date(Date.now() - Math.random() * 3600000)
 
       const registrationDateTimestamp = data.registrationDate || data.createdAt
       const registrationDate =
@@ -148,16 +64,7 @@ export async function fetchDevices(userId: string): Promise<DeviceWithSensors[]>
         coordinates: data.coordinates || { lat: -6.2088, lng: 106.8456 },
         userId: data.userId,
         authToken: data.authToken,
-        // Dynamic data
-        status: Math.random() > 0.3 ? "online" : "offline",
-        ...sensorData,
         threshold: data.threshold || 2.0,
-        lastUpdate: lastUpdate,
-        trends: {
-          waterLevel: sensorData.waterLevel.trend,
-          temperature: sensorData.temperature.trend,
-          rainfall: sensorData.rainfall.trend,
-        },
       })
     })
 
@@ -168,7 +75,7 @@ export async function fetchDevices(userId: string): Promise<DeviceWithSensors[]>
   }
 }
 
-export async function fetchDevice(deviceId: string): Promise<DeviceWithSensors | null> {
+export async function fetchDevice(deviceId: string): Promise<Device | null> {
   try {
     const deviceRef = doc(db, "devices", deviceId)
     const docSnap = await getDoc(deviceRef)
@@ -179,13 +86,6 @@ export async function fetchDevice(deviceId: string): Promise<DeviceWithSensors |
     }
 
     const data = docSnap.data()
-    const sensorData = generateSensorData() // Using mock data for now
-
-    const lastUpdateTimestamp = data.lastUpdate || data.updatedAt
-    const lastUpdate =
-      lastUpdateTimestamp instanceof Timestamp
-        ? lastUpdateTimestamp.toDate()
-        : new Date(Date.now() - Math.random() * 3600000)
 
     const registrationDateTimestamp = data.registrationDate || data.createdAt
     const registrationDate =
@@ -201,16 +101,7 @@ export async function fetchDevice(deviceId: string): Promise<DeviceWithSensors |
       coordinates: data.coordinates || { lat: -6.2088, lng: 106.8456 },
       userId: data.userId,
       authToken: data.authToken,
-      // Dynamic data
-      status: Math.random() > 0.3 ? "online" : "offline",
-      ...sensorData,
       threshold: data.threshold || 2.0,
-      lastUpdate: lastUpdate,
-      trends: {
-        waterLevel: sensorData.waterLevel.trend,
-        temperature: sensorData.temperature.trend,
-        rainfall: sensorData.rainfall.trend,
-      },
     }
   } catch (error) {
     console.error(`Error fetching device ${deviceId}:`, error)
@@ -234,6 +125,7 @@ export async function addDevice(
       updatedAt: timestamp,
       registrationDate: new Date().toISOString().split("T")[0],
       authToken: newId, // The ID is the token
+      threshold: deviceData.threshold || 2.0,
     }
 
     // Use setDoc with the custom ID
@@ -247,7 +139,7 @@ export async function addDevice(
     }
 
     // Log device creation
-    await logDeviceEvent(deviceData.userId, newId, "configuration", "Device created", "low", newDevice.name)
+    await addLogEvent(deviceData.userId, newId, "configuration", "Device created", "low", newDevice.name)
 
     return newDevice
   } catch (error) {
@@ -274,14 +166,7 @@ export async function updateDevice(
     const updatedData = docSnap.data() as Device
 
     // Log device update
-    await logDeviceEvent(
-      updatedData.userId,
-      deviceId,
-      "configuration",
-      "Device updated",
-      "low",
-      updatedData.name,
-    )
+    await addLogEvent(updatedData.userId, deviceId, "configuration", "Device updated", "low", updatedData.name)
 
     return { ...updatedData, id: deviceId }
   } catch (error) {
@@ -302,7 +187,7 @@ export async function deleteDevice(deviceId: string): Promise<boolean> {
     await deleteDoc(deviceRef)
 
     // Log device deletion
-    await logDeviceEvent(device.userId, deviceId, "configuration", "Device deleted", "medium", device.name)
+    await addLogEvent(device.userId, deviceId, "configuration", "Device deleted", "medium", device.name)
 
     return true
   } catch (error) {
@@ -325,7 +210,7 @@ export async function generateDeviceToken(deviceId: string): Promise<DeviceToken
     const token = device.authToken || device.id
 
     // Log token generation
-    await logDeviceEvent(device.userId, deviceId, "configuration", "Authentication token retrieved", "low", device.name)
+    await addLogEvent(device.userId, deviceId, "configuration", "Authentication token retrieved", "low", device.name)
 
     return { token, deviceId }
   } catch (error) {
@@ -333,28 +218,3 @@ export async function generateDeviceToken(deviceId: string): Promise<DeviceToken
     throw error
   }
 }
-
-async function logDeviceEvent(
-  userId: string,
-  deviceId: string,
-  type: string,
-  message: string,
-  severity: string,
-  deviceName: string,
-) {
-  try {
-    const timestamp = Date.now()
-    const logRef = ref(rtdb, `logs/${userId}/${timestamp}`)
-    await set(logRef, {
-      deviceId,
-      type,
-      message,
-      severity,
-      timestamp: timestamp,
-      device: deviceName,
-    })
-  } catch (error) {
-    console.error("Error logging device event:", error)
-  }
-}
-

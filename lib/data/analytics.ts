@@ -1,4 +1,4 @@
-import { fetchDevices } from "./FetchingDevice"
+import { fetchDevices } from "./FetchingDevices"
 import { fetchLogs } from "./FetchingLogs"
 
 export interface AnalyticsData {

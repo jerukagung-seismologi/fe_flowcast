@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
-import { Device } from "@/lib/data/FetchingDevice"
+import { Device } from "@/lib/data/FetchingDevices"
 
 type NewDeviceData = Omit<Device, "id" | "authToken" | "registrationDate" | "userId">
 
@@ -38,6 +38,7 @@ export function AddDeviceDialog({
     location: "",
     latitude: "",
     longitude: "",
+    threshold: "2.0",
   })
 
   const handleAdd = async () => {
@@ -48,6 +49,7 @@ export function AddDeviceDialog({
         lat: parseFloat(newDevice.latitude) || 0,
         lng: parseFloat(newDevice.longitude) || 0,
       },
+      threshold: parseFloat(newDevice.threshold) || 2.0,
     }
     const addedDevice = await onAddDevice(deviceToAdd)
     if (addedDevice && addedDevice.authToken) {
@@ -89,6 +91,7 @@ export function AddDeviceDialog({
               <Input
                 id="latitude"
                 placeholder="-6.2088"
+                type="number"
                 value={newDevice.latitude}
                 onChange={(e) => setNewDevice({ ...newDevice, latitude: e.target.value })}
               />
@@ -98,10 +101,22 @@ export function AddDeviceDialog({
               <Input
                 id="longitude"
                 placeholder="106.8456"
+                type="number"
                 value={newDevice.longitude}
                 onChange={(e) => setNewDevice({ ...newDevice, longitude: e.target.value })}
               />
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="threshold">Ambang Batas Siaga (meter)</Label>
+            <Input
+              id="threshold"
+              placeholder="e.g., 2.0"
+              type="number"
+              step="0.1"
+              value={newDevice.threshold}
+              onChange={(e) => setNewDevice({ ...newDevice, threshold: e.target.value })}
+            />
           </div>
         </div>
         <DialogFooter>

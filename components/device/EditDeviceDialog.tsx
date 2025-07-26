@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { type Device, type DeviceWithSensors } from "@/lib/data/FetchingDevice"
+import { type DeviceWithSensors } from "@/lib/data/FetchingData"
 
 interface EditDeviceDialogProps {
   open: boolean
@@ -86,6 +86,16 @@ export function EditDeviceDialog({
                 }
               />
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="edit-threshold">Ambang Batas Siaga (meter)</Label>
+            <Input
+              id="edit-threshold"
+              type="number"
+              step="0.1"
+              value={device.threshold}
+              onChange={(e) => setEditingDevice({ ...device, threshold: Number.parseFloat(e.target.value) })}
+            />
           </div>
         </div>
         <DialogFooter>

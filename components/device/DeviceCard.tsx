@@ -13,7 +13,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
-import { type DeviceWithSensors } from "@/lib/data/FetchingDevice"
+import { type DeviceWithSensors } from "@/lib/data/FetchingData"
 
 interface DeviceCardProps {
   device: DeviceWithSensors
@@ -86,19 +86,19 @@ export function DeviceCard({ device, onEdit, onDelete, onGenerateToken }: Device
           <div className="grid grid-cols-3 gap-2">
             <div className="flex items-center justify-center p-2 bg-gradient-to-br from-blue-100 to-cyan-100 rounded">
               <div className="text-center">
-                <div className="flex items-center justify-center mb-1">{getTrendIcon(device.trends.waterLevel)}</div>
+                <div className="flex items-center justify-center mb-1">{getTrendIcon(device.waterLevel.trend)}</div>
                 <div className="text-xs text-blue-600">Air</div>
               </div>
             </div>
             <div className="flex items-center justify-center p-2 bg-gradient-to-br from-orange-100 to-red-100 rounded">
               <div className="text-center">
-                <div className="flex items-center justify-center mb-1">{getTrendIcon(device.trends.temperature)}</div>
+                <div className="flex items-center justify-center mb-1">{getTrendIcon(device.temperature.trend)}</div>
                 <div className="text-xs text-orange-600">Suhu</div>
               </div>
             </div>
             <div className="flex items-center justify-center p-2 bg-gradient-to-br from-green-100 to-emerald-100 rounded">
               <div className="text-center">
-                <div className="flex items-center justify-center mb-1">{getTrendIcon(device.trends.rainfall)}</div>
+                <div className="flex items-center justify-center mb-1">{getTrendIcon(device.rainfall.trend)}</div>
                 <div className="text-xs text-green-600">Hujan</div>
               </div>
             </div>

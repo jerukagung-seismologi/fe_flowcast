@@ -101,7 +101,7 @@ export default function DashboardLayout({
         <div className="flex flex-col flex-grow bg-gradient-to-b from-white to-blue-50 border-r border-gray-200">
           <div className="flex items-center h-16 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
             <CloudRain className="h-8 w-8 text-white" />
-            <span className="ml-2 text-lg font-bold text-white">Infraseis Hidrometeorologi</span>
+            <span className="ml-2 text-lg font-bold text-white">Hidrometeorologi Portal</span>
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => (

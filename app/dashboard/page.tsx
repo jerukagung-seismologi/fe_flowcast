@@ -20,14 +20,14 @@ import {
   RefreshCwIcon,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { fetchDevices, fetchDeviceStats, type Device, type DeviceStats } from "@/lib/data/FetchingDevice"
+import { fetchDeviceStats, fetchDevicesWithSensors, type DeviceWithSensors, type DeviceStats } from "@/lib/data/FetchingData"
 import { fetchRecentAlerts, type LogEvent } from "@/lib/data/FetchingLogs"
-import { fetchWeatherStats } from "@/lib/data/FetchingWeather"
+import { fetchWeatherStats } from "@/lib/data/FetchingData"
 import { EmptyState } from "@/components/empty-state"
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const [devices, setDevices] = useState<Device[]>([])
+  const [devices, setDevices] = useState<DeviceWithSensors[]>([])
   const [deviceStats, setDeviceStats] = useState<DeviceStats | null>(null)
   const [recentAlerts, setRecentAlerts] = useState<LogEvent[]>([])
   const [weatherStats, setWeatherStats] = useState<any>(null)
@@ -43,7 +43,7 @@ export default function DashboardPage() {
     try {
       // No need to set loading to true here as it's handled by the initial state and refresh handler
       const [devicesData, statsData, alertsData, weatherData] = await Promise.all([
-        fetchDevices(user.uid),
+        fetchDevicesWithSensors(user.uid),
         fetchDeviceStats(user.uid),
         fetchRecentAlerts(user.uid, 5),
         fetchWeatherStats(user.uid).catch(() => null), // Weather stats are optional
@@ -103,7 +103,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Selamat Datang di Infraseis Hidrometeorologi</h1>
+          <h2 className="text-3xl font-bold tracking-tight">Beranda Sistem</h2>
           <p className="text-muted-foreground">Ringkasan sistem monitoring cuaca dan hidrologi</p>
         </div>
         <Button
@@ -175,7 +175,7 @@ export default function DashboardPage() {
             </CardTitle>
             <CardDescription className="text-blue-600">Monitoring real-time</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pt-4 space-y-4">
             {devices.filter((d) => d.status === "online").length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">Tidak ada perangkat aktif</div>
             ) : (
@@ -197,12 +197,12 @@ export default function DashboardPage() {
                         Online
                       </Badge>
                       <div className="text-right">
-                        <div className="text-sm font-medium">{device.waterLevel.value.toFixed(1)}m</div>
+                        <div className="text-sm font-medium">{device.waterLevel?.value.toFixed(1)}m</div>
                         <div className="flex items-center">
-                          {getTrendIcon(device.waterLevel.trend, "h-3 w-3")}
+                          {getTrendIcon(device.waterLevel?.trend, "h-3 w-3")}
                           <span className="text-xs ml-1">
-                            {device.waterLevel.change > 0 ? "+" : ""}
-                            {device.waterLevel.change.toFixed(1)}
+                            {device.waterLevel?.change > 0 ? "+" : ""}
+                            {device.waterLevel?.change.toFixed(1)}
                           </span>
                         </div>
                       </div>
@@ -222,7 +222,7 @@ export default function DashboardPage() {
             </CardTitle>
             <CardDescription className="text-red-600">Notifikasi sistem</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pt-4 space-y-4">
             {recentAlerts.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 <CheckCircleIcon className="h-8 w-8 mx-auto mb-2 text-green-500" />
@@ -297,7 +297,7 @@ export default function DashboardPage() {
           </CardTitle>
           <CardDescription className="text-indigo-600">Kesehatan keseluruhan</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {devices.map((device) => (
               <div key={device.id} className="p-4 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg">
@@ -315,13 +315,15 @@ export default function DashboardPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Tinggi Air:</span>
                     <div className="flex items-center">
-                      <span className="font-medium">{device.waterLevel.value.toFixed(1)}m</span>
-                      {getTrendIcon(device.waterLevel.trend, "h-3 w-3 ml-1")}
+                      <span className="font-medium">{device.waterLevel?.value.toFixed(1)}m</span>
+                      {getTrendIcon(device.waterLevel?.trend, "h-3 w-3 ml-1")}
                     </div>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Baterai:</span>
-                    <span className={`font-medium ${device.batteryLevel < 30 ? "text-red-600" : "text-green-600"}`}>
+                    <span
+                      className={`font-medium ${device.batteryLevel < 30 ? "text-red-600" : "text-green-600"}`}
+                    >
                       {device.batteryLevel}%
                     </span>
                   </div>
