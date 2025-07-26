@@ -1,0 +1,297 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, Filter, AlertTriangle, CheckCircle, Settings, Wifi, WifiOff, Calendar, Clock } from "lucide-react"
+
+interface LogEvent {
+  id: number
+  timestamp: Date
+  type: "alert" | "connection" | "disconnection" | "configuration" | "threshold"
+  device: string
+  message: string
+  severity: "low" | "medium" | "high"
+}
+
+export default function LogsPage() {
+  const [logs, setLogs] = useState<LogEvent[]>([])
+  const [filteredLogs, setFilteredLogs] = useState<LogEvent[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [typeFilter, setTypeFilter] = useState("all")
+  const [severityFilter, setSeverityFilter] = useState("all")
+  const [dateFilter, setDateFilter] = useState("all")
+
+  // Generate sample log data
+  useEffect(() => {
+    const generateLogs = () => {
+      const events: LogEvent[] = []
+      const devices = ["Sensor Jakarta Utara", "Sensor Jakarta Barat", "Sensor Jakarta Selatan"]
+      const types: LogEvent["type"][] = ["alert", "connection", "disconnection", "configuration", "threshold"]
+      const severities: LogEvent["severity"][] = ["low", "medium", "high"]
+
+      for (let i = 0; i < 50; i++) {
+        const device = devices[Math.floor(Math.random() * devices.length)]
+        const type = types[Math.floor(Math.random() * types.length)]
+        const severity = severities[Math.floor(Math.random() * severities.length)]
+        const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+
+        let message = ""
+        switch (type) {
+          case "alert":
+            message = `Water level exceeded threshold at ${device}`
+            break
+          case "connection":
+            message = `${device} connected successfully`
+            break
+          case "disconnection":
+            message = `${device} disconnected unexpectedly`
+            break
+          case "configuration":
+            message = `Configuration updated for ${device}`
+            break
+          case "threshold":
+            message = `Threshold settings changed for ${device}`
+            break
+        }
+
+        events.push({
+          id: i + 1,
+          timestamp,
+          type,
+          device,
+          message,
+          severity,
+        })
+      }
+
+      return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    }
+
+    setLogs(generateLogs())
+  }, [])
+
+  // Filter logs based on search and filters
+  useEffect(() => {
+    let filtered = logs
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (log) =>
+          log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          log.device.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    }
+
+    // Type filter
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((log) => log.type === typeFilter)
+    }
+
+    // Severity filter
+    if (severityFilter !== "all") {
+      filtered = filtered.filter((log) => log.severity === severityFilter)
+    }
+
+    // Date filter
+    if (dateFilter !== "all") {
+      const now = new Date()
+      const cutoffDate = new Date()
+
+      switch (dateFilter) {
+        case "today":
+          cutoffDate.setHours(0, 0, 0, 0)
+          break
+        case "week":
+          cutoffDate.setDate(now.getDate() - 7)
+          break
+        case "month":
+          cutoffDate.setMonth(now.getMonth() - 1)
+          break
+      }
+
+      filtered = filtered.filter((log) => log.timestamp >= cutoffDate)
+    }
+
+    setFilteredLogs(filtered)
+  }, [logs, searchTerm, typeFilter, severityFilter, dateFilter])
+
+  const getTypeIcon = (type: LogEvent["type"]) => {
+    switch (type) {
+      case "alert":
+        return <AlertTriangle className="h-4 w-4" />
+      case "connection":
+        return <Wifi className="h-4 w-4" />
+      case "disconnection":
+        return <WifiOff className="h-4 w-4" />
+      case "configuration":
+        return <Settings className="h-4 w-4" />
+      case "threshold":
+        return <CheckCircle className="h-4 w-4" />
+      default:
+        return <Clock className="h-4 w-4" />
+    }
+  }
+
+  const getTypeColor = (type: LogEvent["type"]) => {
+    switch (type) {
+      case "alert":
+        return "destructive"
+      case "connection":
+        return "default"
+      case "disconnection":
+        return "secondary"
+      case "configuration":
+        return "outline"
+      case "threshold":
+        return "default"
+      default:
+        return "outline"
+    }
+  }
+
+  const getSeverityColor = (severity: LogEvent["severity"]) => {
+    switch (severity) {
+      case "high":
+        return "destructive"
+      case "medium":
+        return "secondary"
+      case "low":
+        return "outline"
+      default:
+        return "outline"
+    }
+  }
+
+  const clearFilters = () => {
+    setSearchTerm("")
+    setTypeFilter("all")
+    setSeverityFilter("all")
+    setDateFilter("all")
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Log Kejadian</h1>
+        <p className="text-muted-foreground">Monitor aktivitas sistem dan kejadian perangkat</p>
+      </div>
+
+      {/* Filters */}
+      <Card className="shadow-lg border-l-4 border-l-indigo-500">
+        <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+          <CardTitle className="flex items-center text-indigo-800">
+            <Filter className="h-5 w-5 mr-2 text-indigo-600" />
+            Filter & Pencarian
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search logs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-blue-200 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Event Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="alert">Alerts</SelectItem>
+                <SelectItem value="connection">Connections</SelectItem>
+                <SelectItem value="disconnection">Disconnections</SelectItem>
+                <SelectItem value="configuration">Configuration</SelectItem>
+                <SelectItem value="threshold">Threshold</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={severityFilter} onValueChange={setSeverityFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Severities</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Time Period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">Last Week</SelectItem>
+                <SelectItem value="month">Last Month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-between items-center mt-4">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredLogs.length} of {logs.length} events
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              className="bg-gradient-to-r from-gray-50 to-blue-50 hover:from-gray-100 hover:to-blue-100 border-blue-200"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Log Entries */}
+      <Card className="shadow-lg border-l-4 border-l-green-500">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
+          <CardTitle className="text-green-800">Kejadian Terbaru</CardTitle>
+          <CardDescription className="text-green-600">Aktivitas sistem dan peringatan terbaru</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredLogs.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">No events found matching your criteria</div>
+            ) : (
+              filteredLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 border-l-4 border-l-blue-300"
+                >
+                  <div className="flex-shrink-0 mt-1">{getTypeIcon(log.type)}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-sm font-medium text-gray-900">{log.message}</p>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={getTypeColor(log.type)}>{log.type}</Badge>
+                        <Badge variant={getSeverityColor(log.severity)}>{log.severity}</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {log.timestamp.toLocaleDateString()} at {log.timestamp.toLocaleTimeString()}
+                      <span className="mx-2">•</span>
+                      {log.device}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
