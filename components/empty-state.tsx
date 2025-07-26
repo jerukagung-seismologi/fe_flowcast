@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PlusIcon, DatabaseIcon, BarChart3Icon, FileTextIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useLanguage } from "@/hooks/useLanguage"
 
 interface EmptyStateProps {
   type: "dashboard" | "devices" | "charts" | "logs"
@@ -16,7 +15,6 @@ interface EmptyStateProps {
 
 export function EmptyState({ type, title, description, actionLabel, onAction }: EmptyStateProps) {
   const router = useRouter()
-  const { t } = useLanguage()
 
   const getIcon = () => {
     switch (type) {
@@ -37,33 +35,36 @@ export function EmptyState({ type, title, description, actionLabel, onAction }: 
     switch (type) {
       case "dashboard":
         return {
-          title: t("dashboard.noDevicesTitle"),
-          description: t("dashboard.noDevicesDescription"),
-          actionLabel: t("dashboard.addFirstDevice"),
+          title: "Belum Ada Perangkat Terdaftar",
+          description:
+            "Anda belum menambahkan perangkat monitoring. Mulai dengan menambahkan perangkat pertama Anda untuk memantau kondisi cuaca dan hidrologi.",
+          actionLabel: "Tambah Perangkat Pertama",
         }
       case "devices":
         return {
-          title: t("devices.noDevicesTitle"),
-          description: t("devices.noDevicesDescription"),
-          actionLabel: t("devices.addFirstDevice"),
+          title: "Belum Ada Perangkat",
+          description:
+            "Anda belum menambahkan perangkat monitoring. Klik tombol di bawah untuk menambahkan perangkat pertama Anda.",
+          actionLabel: "Tambah Perangkat Pertama",
         }
       case "charts":
         return {
-          title: t("charts.noDataTitle"),
-          description: t("charts.noDataDescription"),
-          actionLabel: t("charts.addDeviceForCharts"),
+          title: "Tidak Ada Data",
+          description: "Tidak ada data grafik tersedia. Tambahkan perangkat untuk mulai melihat visualisasi data.",
+          actionLabel: "Tambah Perangkat untuk Grafik",
         }
       case "logs":
         return {
-          title: t("logs.noLogsTitle"),
-          description: t("logs.noLogsDescription"),
-          actionLabel: t("logs.addDeviceForLogs"),
+          title: "Belum Ada Log",
+          description:
+            "Belum ada aktivitas sistem yang tercatat. Log akan muncul setelah Anda menambahkan dan menggunakan perangkat.",
+          actionLabel: "Tambah Perangkat untuk Log",
         }
       default:
         return {
-          title: "No Data",
-          description: "No data available",
-          actionLabel: "Add Device",
+          title: "Tidak Ada Data",
+          description: "Tidak ada data tersedia",
+          actionLabel: "Tambah Perangkat",
         }
     }
   }
@@ -97,7 +98,7 @@ export function EmptyState({ type, title, description, actionLabel, onAction }: 
             <PlusIcon className="h-4 w-4 mr-2" />
             {finalActionLabel}
           </Button>
-          <div className="mt-4 text-xs text-gray-400">{t("dashboard.getStarted")}</div>
+          <div className="mt-4 text-xs text-gray-400">Mulai Sekarang</div>
         </CardContent>
       </Card>
     </div>

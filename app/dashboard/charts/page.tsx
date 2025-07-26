@@ -32,7 +32,6 @@ import {
   RefreshCwIcon,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { useLanguage } from "@/hooks/useLanguage"
 import {
   fetchWaterLevelData,
   fetchRainfallData,
@@ -50,7 +49,6 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"
 
 export default function ChartsPage() {
   const { user } = useAuth()
-  const { t } = useLanguage()
   const [devices, setDevices] = useState<Device[]>([])
   const [selectedDevice, setSelectedDevice] = useState<string>("all")
   const [waterLevelData, setWaterLevelData] = useState<WaterLevelData | null>(null)
@@ -131,8 +129,8 @@ export default function ChartsPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("charts.title")}</h1>
-            <p className="text-muted-foreground">{t("charts.description")}</p>
+            <h1 className="text-3xl font-bold tracking-tight">Analitik & Grafik</h1>
+            <p className="text-muted-foreground">Visualisasi data canggih dengan analisis tren</p>
           </div>
         </div>
         <EmptyState type="charts" />
@@ -144,16 +142,16 @@ export default function ChartsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("charts.title")}</h1>
-          <p className="text-muted-foreground">{t("charts.description")}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Analitik & Grafik</h1>
+          <p className="text-muted-foreground">Visualisasi data canggih dengan analisis tren</p>
         </div>
         <div className="flex items-center space-x-4">
           <Select value={selectedDevice} onValueChange={setSelectedDevice}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("charts.selectDevice")} />
+              <SelectValue placeholder="Pilih Perangkat" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("charts.allDevices")}</SelectItem>
+              <SelectItem value="all">Semua Perangkat</SelectItem>
               {devices.map((device) => (
                 <SelectItem key={device.id} value={device.id}>
                   {device.name}
@@ -168,7 +166,7 @@ export default function ChartsPage() {
             className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100"
           >
             <RefreshCwIcon className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-            {t("common.refresh")}
+            Refresh
           </Button>
         </div>
       </div>
@@ -190,7 +188,7 @@ export default function ChartsPage() {
               </div>
               <div className={`text-xs flex items-center ${getTrendColor(trend.trend)}`}>
                 {trend.change > 0 ? "+" : ""}
-                {trend.change} {trend.unit} {t("charts.fromLastHour")}
+                {trend.change} {trend.unit} dari jam terakhir
               </div>
             </CardContent>
           </Card>
@@ -203,9 +201,9 @@ export default function ChartsPage() {
           <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
             <CardTitle className="flex items-center text-blue-800">
               <DropletIcon className="h-5 w-5 mr-2 text-blue-600" />
-              {t("charts.waterLevelTrends")}
+              Tren Tinggi Air
             </CardTitle>
-            <CardDescription className="text-blue-600">{t("charts.realTimeWaterLevel")}</CardDescription>
+            <CardDescription className="text-blue-600">Monitoring tinggi air real-time</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-80">
@@ -216,16 +214,10 @@ export default function ChartsPage() {
                   <YAxis />
                   <Tooltip
                     labelFormatter={(value) => new Date(value).toLocaleString()}
-                    formatter={(value: number) => [`${value.toFixed(2)}m`, t("charts.waterLevel")]}
+                    formatter={(value: number) => [`${value.toFixed(2)}m`, "Tinggi Air"]}
                   />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#2563eb"
-                    strokeWidth={2}
-                    name={t("charts.waterLevel")}
-                  />
+                  <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} name="Tinggi Air" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -239,9 +231,9 @@ export default function ChartsPage() {
           <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
             <CardTitle className="flex items-center text-green-800">
               <CloudRainIcon className="h-5 w-5 mr-2 text-green-600" />
-              {t("charts.rainfallAnalysis")}
+              Analisis Curah Hujan
             </CardTitle>
-            <CardDescription className="text-green-600">{t("charts.precipitationData")}</CardDescription>
+            <CardDescription className="text-green-600">Data presipitasi dan intensitas</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-80">
@@ -252,7 +244,7 @@ export default function ChartsPage() {
                   <YAxis />
                   <Tooltip
                     labelFormatter={(value) => new Date(value).toLocaleString()}
-                    formatter={(value: number) => [`${value.toFixed(1)}mm`, t("charts.rainfall")]}
+                    formatter={(value: number) => [`${value.toFixed(1)}mm`, "Curah Hujan"]}
                   />
                   <Legend />
                   <Area
@@ -261,7 +253,7 @@ export default function ChartsPage() {
                     stroke="#16a34a"
                     fill="#16a34a"
                     fillOpacity={0.3}
-                    name={t("charts.rainfall")}
+                    name="Curah Hujan"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -277,9 +269,9 @@ export default function ChartsPage() {
             <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
               <CardTitle className="flex items-center text-purple-800">
                 <GaugeIcon className="h-5 w-5 mr-2 text-purple-600" />
-                {t("charts.deviceComparison")}
+                Perbandingan Perangkat
               </CardTitle>
-              <CardDescription className="text-purple-600">{t("charts.crossDeviceAnalysis")}</CardDescription>
+              <CardDescription className="text-purple-600">Analisis lintas perangkat</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
@@ -297,9 +289,9 @@ export default function ChartsPage() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="waterLevel" fill="#2563eb" name={t("charts.waterLevel")} />
-                    <Bar dataKey="rainfall" fill="#16a34a" name={t("charts.rainfall")} />
-                    <Bar dataKey="temperature" fill="#dc2626" name={t("charts.temperature")} />
+                    <Bar dataKey="waterLevel" fill="#2563eb" name="Tinggi Air" />
+                    <Bar dataKey="rainfall" fill="#16a34a" name="Curah Hujan" />
+                    <Bar dataKey="temperature" fill="#dc2626" name="Suhu" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -310,9 +302,9 @@ export default function ChartsPage() {
             <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50">
               <CardTitle className="flex items-center text-orange-800">
                 <ThermometerIcon className="h-5 w-5 mr-2 text-orange-600" />
-                {t("charts.temperatureDistribution")}
+                Distribusi Suhu
               </CardTitle>
-              <CardDescription className="text-orange-600">{t("charts.deviceTemperatures")}</CardDescription>
+              <CardDescription className="text-orange-600">Suhu perangkat</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
@@ -335,7 +327,7 @@ export default function ChartsPage() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [`${value.toFixed(1)}°C`, t("charts.temperature")]} />
+                    <Tooltip formatter={(value: number) => [`${value.toFixed(1)}°C`, "Suhu"]} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -350,9 +342,9 @@ export default function ChartsPage() {
           <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
             <CardTitle className="flex items-center text-indigo-800">
               <EyeIcon className="h-5 w-5 mr-2 text-indigo-600" />
-              {t("charts.historicalAnalysis")}
+              Analisis Historis
             </CardTitle>
-            <CardDescription className="text-indigo-600">{t("charts.weeklyTrends")}</CardDescription>
+            <CardDescription className="text-indigo-600">Tren mingguan</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-80">
@@ -363,16 +355,10 @@ export default function ChartsPage() {
                   <YAxis />
                   <Tooltip
                     labelFormatter={(value) => new Date(value).toLocaleString()}
-                    formatter={(value: number) => [`${value.toFixed(2)}m`, t("charts.waterLevel")]}
+                    formatter={(value: number) => [`${value.toFixed(2)}m`, "Tinggi Air"]}
                   />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#6366f1"
-                    strokeWidth={2}
-                    name={t("charts.historicalData")}
-                  />
+                  <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} name="Data Historis" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -386,9 +372,9 @@ export default function ChartsPage() {
           <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
             <CardTitle className="flex items-center text-yellow-800">
               <TrendingUpIcon className="h-5 w-5 mr-2 text-yellow-600" />
-              {t("charts.predictions")}
+              Prediksi
             </CardTitle>
-            <CardDescription className="text-yellow-600">{t("charts.forecastData")}</CardDescription>
+            <CardDescription className="text-yellow-600">Data prakiraan</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-80">
@@ -399,7 +385,7 @@ export default function ChartsPage() {
                   <YAxis />
                   <Tooltip
                     labelFormatter={(value) => new Date(value).toLocaleString()}
-                    formatter={(value: number) => [`${value.toFixed(2)}m`, t("charts.predictedLevel")]}
+                    formatter={(value: number) => [`${value.toFixed(2)}m`, "Level Prediksi"]}
                   />
                   <Legend />
                   <Line
@@ -408,7 +394,7 @@ export default function ChartsPage() {
                     stroke="#f59e0b"
                     strokeWidth={2}
                     strokeDasharray="5 5"
-                    name={t("charts.prediction")}
+                    name="Prediksi"
                   />
                 </LineChart>
               </ResponsiveContainer>

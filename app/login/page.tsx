@@ -10,8 +10,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CloudRain, Eye, EyeOff, CheckCircle, XCircle, User, Mail, Lock, Loader2 } from "lucide-react"
-import { LanguageSelector } from "@/components/language-selector"
-import { useLanguage } from "@/hooks/useLanguage"
 import { signInWithEmail, signUpWithEmail } from "@/lib/auth"
 
 interface FormData {
@@ -36,7 +34,6 @@ interface PasswordStrength {
 }
 
 export default function AuthPage() {
-  const { t } = useLanguage()
   const [isSignUp, setIsSignUp] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -67,31 +64,31 @@ export default function AuthPage() {
     if (password.length >= 8) {
       score += 1
     } else {
-      feedback.push("At least 8 characters")
+      feedback.push("Minimal 8 karakter")
     }
 
     if (/[a-z]/.test(password)) {
       score += 1
     } else {
-      feedback.push("One lowercase letter")
+      feedback.push("Satu huruf kecil")
     }
 
     if (/[A-Z]/.test(password)) {
       score += 1
     } else {
-      feedback.push("One uppercase letter")
+      feedback.push("Satu huruf kapital")
     }
 
     if (/\d/.test(password)) {
       score += 1
     } else {
-      feedback.push("One number")
+      feedback.push("Satu angka")
     }
 
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
       score += 1
     } else {
-      feedback.push("One special character")
+      feedback.push("Satu karakter spesial")
     }
 
     let color = "text-red-500"
@@ -108,34 +105,34 @@ export default function AuthPage() {
 
     // Name validation (only for sign up)
     if (isSignUp && !formData.name.trim()) {
-      newErrors.name = "Full name is required"
+      newErrors.name = "Nama lengkap wajib diisi"
     } else if (isSignUp && formData.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters"
+      newErrors.name = "Nama minimal 2 karakter"
     }
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email wajib diisi"
     } else if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+      newErrors.email = "Mohon masukkan alamat email yang valid"
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Kata sandi wajib diisi"
     } else if (isSignUp) {
       const strength = getPasswordStrength(formData.password)
       if (strength.score < 3) {
-        newErrors.password = "Password is too weak"
+        newErrors.password = "Kata sandi terlalu lemah"
       }
     }
 
     // Confirm password validation (only for sign up)
     if (isSignUp) {
       if (!formData.confirmPassword) {
-        newErrors.confirmPassword = "Please confirm your password"
+        newErrors.confirmPassword = "Mohon konfirmasi kata sandi Anda"
       } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match"
+        newErrors.confirmPassword = "Kata sandi tidak cocok"
       }
     }
 
@@ -161,13 +158,13 @@ export default function AuthPage() {
     const newErrors: FormErrors = {}
 
     if (field === "email" && formData.email && !validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+      newErrors.email = "Mohon masukkan alamat email yang valid"
     }
 
     if (field === "password" && isSignUp && formData.password) {
       const strength = getPasswordStrength(formData.password)
       if (strength.score < 3) {
-        newErrors.password = "Password is too weak"
+        newErrors.password = "Kata sandi terlalu lemah"
       }
     }
 
@@ -177,7 +174,7 @@ export default function AuthPage() {
       formData.confirmPassword &&
       formData.password !== formData.confirmPassword
     ) {
-      newErrors.confirmPassword = "Passwords do not match"
+      newErrors.confirmPassword = "Kata sandi tidak cocok"
     }
 
     setErrors((prev) => ({ ...prev, ...newErrors }))
@@ -206,7 +203,7 @@ export default function AuthPage() {
       // Redirect to dashboard on success
       router.push("/dashboard")
     } catch (error) {
-      setErrors({ general: error instanceof Error ? error.message : "Authentication failed. Please try again." })
+      setErrors({ general: error instanceof Error ? error.message : "Autentikasi gagal. Silakan coba lagi." })
     } finally {
       setLoading(false)
     }
@@ -232,11 +229,12 @@ export default function AuthPage() {
             <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg">
               <CloudRain className="h-8 w-8 text-white" />
             </div>
-            <LanguageSelector />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">Infraseis Hidrometeorologi</CardTitle>
           <CardDescription className="text-gray-600">
-            {isSignUp ? t("auth.signupDescription") : t("auth.signinDescription")}
+            {isSignUp
+              ? "Buat akun Anda untuk mulai memantau kondisi hidrometeorologi."
+              : "Masuk ke akun Anda untuk mengakses dashboard."}
           </CardDescription>
         </CardHeader>
 
@@ -250,7 +248,7 @@ export default function AuthPage() {
                 !isSignUp ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              {t("auth.signin")}
+              Masuk
             </button>
             <button
               type="button"
@@ -259,7 +257,7 @@ export default function AuthPage() {
                 isSignUp ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              {t("auth.signup")}
+              Daftar
             </button>
           </div>
         </div>
@@ -278,14 +276,14 @@ export default function AuthPage() {
             {isSignUp && (
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                  {t("auth.fullName")}
+                  Nama Lengkap
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="name"
                     type="text"
-                    placeholder={t("auth.enterFullName")}
+                    placeholder="Contoh: Budi Santoso"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     onBlur={() => handleInputBlur("name")}
@@ -305,14 +303,14 @@ export default function AuthPage() {
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                {t("auth.email")}
+                Email
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder={t("auth.enterEmail")}
+                  placeholder="Masukkan email Anda"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   onBlur={() => handleInputBlur("email")}
@@ -334,14 +332,14 @@ export default function AuthPage() {
             {/* Password Field */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                {t("auth.password")}
+                Kata Sandi
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder={t("auth.enterPassword")}
+                  placeholder="Masukkan kata sandi Anda"
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   onBlur={() => handleInputBlur("password")}
@@ -377,17 +375,17 @@ export default function AuthPage() {
                     </div>
                     <span className={`text-xs font-medium ${passwordStrength.color}`}>
                       {passwordStrength.score >= 4
-                        ? t("auth.passwordStrength.strong")
+                        ? "Kuat"
                         : passwordStrength.score >= 3
-                          ? t("auth.passwordStrength.good")
+                          ? "Baik"
                           : passwordStrength.score >= 2
-                            ? t("auth.passwordStrength.fair")
-                            : t("auth.passwordStrength.weak")}
+                            ? "Cukup"
+                            : "Lemah"}
                     </span>
                   </div>
                   {passwordStrength.feedback.length > 0 && (
                     <div className="text-xs text-gray-600">
-                      <p>{t("auth.passwordNeeds")}</p>
+                      <p>Kata sandi membutuhkan:</p>
                       <ul className="list-disc list-inside space-y-1">
                         {passwordStrength.feedback.map((item, index) => (
                           <li key={index}>{item}</li>
@@ -410,14 +408,14 @@ export default function AuthPage() {
             {isSignUp && (
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  {t("auth.confirmPassword")}
+                  Konfirmasi Kata Sandi
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder={t("auth.confirmYourPassword")}
+                    placeholder="Konfirmasi kata sandi Anda"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                     onBlur={() => handleInputBlur("confirmPassword")}
@@ -453,12 +451,12 @@ export default function AuthPage() {
               {loading ? (
                 <div className="flex items-center justify-center">
                   <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                  {isSignUp ? t("auth.creatingAccount") : t("auth.signingIn")}
+                  {isSignUp ? "Membuat Akun..." : "Masuk..."}
                 </div>
               ) : isSignUp ? (
-                t("auth.createAccount")
+                "Buat Akun"
               ) : (
-                t("auth.signin")
+                "Masuk"
               )}
             </Button>
           </form>
@@ -466,13 +464,13 @@ export default function AuthPage() {
           {/* Additional Options */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              {isSignUp ? t("auth.alreadyHaveAccount") : t("auth.dontHaveAccount")}{" "}
+              {isSignUp ? "Sudah punya akun?" : "Belum punya akun?"}{" "}
               <button
                 type="button"
                 onClick={toggleMode}
                 className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
               >
-                {isSignUp ? t("auth.signinHere") : t("auth.signupHere")}
+                {isSignUp ? "Masuk di sini" : "Daftar di sini"}
               </button>
             </p>
           </div>
@@ -483,7 +481,7 @@ export default function AuthPage() {
                 type="button"
                 className="text-sm text-gray-600 hover:text-gray-700 hover:underline transition-colors"
               >
-                {t("auth.forgotPassword")}
+                Lupa Kata Sandi?
               </button>
             </div>
           )}

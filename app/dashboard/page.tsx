@@ -23,12 +23,10 @@ import { useAuth } from "@/hooks/useAuth"
 import { fetchDevices, fetchDeviceStats, type Device, type DeviceStats } from "@/lib/data/devices"
 import { fetchRecentAlerts, type LogEvent } from "@/lib/data/logs"
 import { fetchWeatherStats } from "@/lib/data/weather"
-import { useLanguage } from "@/hooks/useLanguage"
 import { EmptyState } from "@/components/empty-state"
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const { t } = useLanguage()
   const [devices, setDevices] = useState<Device[]>([])
   const [deviceStats, setDeviceStats] = useState<DeviceStats | null>(null)
   const [recentAlerts, setRecentAlerts] = useState<LogEvent[]>([])
@@ -101,8 +99,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.welcome")}</h1>
-          <p className="text-muted-foreground">{t("dashboard.overview")}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Selamat Datang di Infraseis Hidrometeorologi</h1>
+          <p className="text-muted-foreground">Ringkasan sistem monitoring cuaca dan hidrologi</p>
         </div>
         <Button
           onClick={handleRefresh}
@@ -111,7 +109,7 @@ export default function DashboardPage() {
           className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100"
         >
           <RefreshCwIcon className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-          {t("common.refresh")}
+          Refresh
         </Button>
       </div>
 
@@ -119,45 +117,45 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800">{t("dashboard.totalDevices")}</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-800">Total Perangkat</CardTitle>
             <GaugeIcon className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-900">{deviceStats?.totalDevices || 0}</div>
-            <p className="text-xs text-blue-600">{t("dashboard.connectedStations")}</p>
+            <p className="text-xs text-blue-600">Stasiun terhubung</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-800">{t("dashboard.onlineDevices")}</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-800">Perangkat Online</CardTitle>
             <WifiIcon className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-900">{deviceStats?.onlineDevices || 0}</div>
-            <p className="text-xs text-green-600">{t("dashboard.activeNow")}</p>
+            <p className="text-xs text-green-600">Aktif sekarang</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-l-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-800">{t("dashboard.alerts")}</CardTitle>
+            <CardTitle className="text-sm font-medium text-orange-800">Peringatan</CardTitle>
             <AlertTriangleIcon className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-900">{deviceStats?.alertDevices || 0}</div>
-            <p className="text-xs text-orange-600">{t("dashboard.needsAttention")}</p>
+            <p className="text-xs text-orange-600">Perlu perhatian</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-800">{t("dashboard.avgBattery")}</CardTitle>
+            <CardTitle className="text-sm font-medium text-purple-800">Rata-rata Baterai</CardTitle>
             <BatteryIcon className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-900">{deviceStats?.avgBatteryLevel || 0}%</div>
-            <p className="text-xs text-purple-600">{t("dashboard.batteryLevel")}</p>
+            <p className="text-xs text-purple-600">Level baterai</p>
           </CardContent>
         </Card>
       </div>
@@ -169,13 +167,13 @@ export default function DashboardPage() {
           <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
             <CardTitle className="flex items-center text-blue-800">
               <WifiIcon className="h-5 w-5 mr-2 text-blue-600" />
-              {t("dashboard.activeDevices")}
+              Perangkat Aktif
             </CardTitle>
-            <CardDescription className="text-blue-600">{t("dashboard.realTimeMonitoring")}</CardDescription>
+            <CardDescription className="text-blue-600">Monitoring real-time</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {devices.filter((d) => d.status === "online").length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">{t("dashboard.noActiveDevices")}</div>
+              <div className="text-center py-4 text-muted-foreground">Tidak ada perangkat aktif</div>
             ) : (
               devices
                 .filter((d) => d.status === "online")
@@ -216,15 +214,15 @@ export default function DashboardPage() {
           <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50">
             <CardTitle className="flex items-center text-red-800">
               <AlertTriangleIcon className="h-5 w-5 mr-2 text-red-600" />
-              {t("dashboard.recentAlerts")}
+              Peringatan Terbaru
             </CardTitle>
-            <CardDescription className="text-red-600">{t("dashboard.systemNotifications")}</CardDescription>
+            <CardDescription className="text-red-600">Notifikasi sistem</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {recentAlerts.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 <CheckCircleIcon className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                {t("dashboard.noRecentAlerts")}
+                Tidak ada peringatan terbaru
               </div>
             ) : (
               recentAlerts.map((alert) => (
@@ -255,31 +253,31 @@ export default function DashboardPage() {
           <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
             <CardTitle className="flex items-center text-green-800">
               <CloudRainIcon className="h-5 w-5 mr-2 text-green-600" />
-              {t("dashboard.weatherOverview")}
+              Ringkasan Cuaca
             </CardTitle>
-            <CardDescription className="text-green-600">{t("dashboard.currentConditions")}</CardDescription>
+            <CardDescription className="text-green-600">Kondisi saat ini</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-3 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg">
                 <ThermometerIcon className="h-6 w-6 mx-auto mb-2 text-blue-600" />
                 <div className="text-lg font-bold text-blue-800">{weatherStats.averageTemperature}°C</div>
-                <div className="text-xs text-blue-600">{t("dashboard.avgTemp")}</div>
+                <div className="text-xs text-blue-600">Suhu Rata-rata</div>
               </div>
               <div className="text-center p-3 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg">
                 <CloudRainIcon className="h-6 w-6 mx-auto mb-2 text-green-600" />
                 <div className="text-lg font-bold text-green-800">{weatherStats.totalRainfall}mm</div>
-                <div className="text-xs text-green-600">{t("dashboard.totalRain")}</div>
+                <div className="text-xs text-green-600">Total Hujan</div>
               </div>
               <div className="text-center p-3 bg-gradient-to-br from-orange-100 to-red-100 rounded-lg">
                 <AlertTriangleIcon className="h-6 w-6 mx-auto mb-2 text-orange-600" />
                 <div className="text-lg font-bold text-orange-800">{weatherStats.activeAlerts}</div>
-                <div className="text-xs text-orange-600">{t("dashboard.activeAlerts")}</div>
+                <div className="text-xs text-orange-600">Peringatan Aktif</div>
               </div>
               <div className="text-center p-3 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg">
                 <WindIcon className="h-6 w-6 mx-auto mb-2 text-purple-600" />
                 <div className="text-lg font-bold text-purple-800">{weatherStats.extremeEvents}</div>
-                <div className="text-xs text-purple-600">{t("dashboard.extremeEvents")}</div>
+                <div className="text-xs text-purple-600">Kejadian Ekstrem</div>
               </div>
             </div>
           </CardContent>
@@ -291,9 +289,9 @@ export default function DashboardPage() {
         <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
           <CardTitle className="flex items-center text-indigo-800">
             <GaugeIcon className="h-5 w-5 mr-2 text-indigo-600" />
-            {t("dashboard.systemStatus")}
+            Status Sistem
           </CardTitle>
-          <CardDescription className="text-indigo-600">{t("dashboard.overallHealth")}</CardDescription>
+          <CardDescription className="text-indigo-600">Kesehatan keseluruhan</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -311,20 +309,20 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t("dashboard.waterLevel")}:</span>
+                    <span className="text-gray-600">Tinggi Air:</span>
                     <div className="flex items-center">
                       <span className="font-medium">{device.waterLevel.value.toFixed(1)}m</span>
                       {getTrendIcon(device.waterLevel.trend, "h-3 w-3 ml-1")}
                     </div>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t("dashboard.battery")}:</span>
+                    <span className="text-gray-600">Baterai:</span>
                     <span className={`font-medium ${device.batteryLevel < 30 ? "text-red-600" : "text-green-600"}`}>
                       {device.batteryLevel}%
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t("dashboard.lastUpdate")}:</span>
+                    <span className="text-gray-600">Update terakhir:</span>
                     <span className="text-xs text-gray-500">{new Date(device.lastUpdate).toLocaleTimeString()}</span>
                   </div>
                 </div>

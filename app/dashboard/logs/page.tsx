@@ -9,12 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, AlertTriangle, CheckCircle, Settings, Wifi, WifiOff, Calendar, Clock } from "lucide-react"
 import { fetchLogs, fetchFilteredLogs, type LogEvent, type LogFilters } from "@/lib/data/logs"
 import { useAuth } from "@/hooks/useAuth"
-import { useLanguage } from "@/hooks/useLanguage"
 import { EmptyState } from "@/components/empty-state"
 
 export default function LogsPage() {
   const { user } = useAuth()
-  const { t } = useLanguage()
   const [logs, setLogs] = useState<LogEvent[]>([])
   const [filteredLogs, setFilteredLogs] = useState<LogEvent[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -133,8 +131,8 @@ export default function LogsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("logs.title")}</h1>
-          <p className="text-muted-foreground">{t("logs.description")}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Log Kejadian</h1>
+          <p className="text-muted-foreground">Monitor aktivitas sistem dan kejadian perangkat</p>
         </div>
         <EmptyState type="logs" />
       </div>
@@ -144,8 +142,8 @@ export default function LogsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("logs.title")}</h1>
-        <p className="text-muted-foreground">{t("logs.description")}</p>
+        <h1 className="text-3xl font-bold tracking-tight">Log Kejadian</h1>
+        <p className="text-muted-foreground">Monitor aktivitas sistem dan kejadian perangkat</p>
       </div>
 
       {/* Filters */}
@@ -153,7 +151,7 @@ export default function LogsPage() {
         <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
           <CardTitle className="flex items-center text-indigo-800">
             <Filter className="h-5 w-5 mr-2 text-indigo-600" />
-            {t("logs.filterSearch")}
+            Filter & Pencarian
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -162,7 +160,7 @@ export default function LogsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t("logs.searchPlaceholder")}
+                  placeholder="Cari log..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 border-blue-200 focus:border-blue-500"
@@ -171,43 +169,43 @@ export default function LogsPage() {
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder={t("logs.eventType")} />
+                <SelectValue placeholder="Jenis Kejadian" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("logs.allTypes")}</SelectItem>
-                <SelectItem value="alert">{t("logs.alerts")}</SelectItem>
-                <SelectItem value="connection">{t("logs.connections")}</SelectItem>
-                <SelectItem value="disconnection">{t("logs.disconnections")}</SelectItem>
-                <SelectItem value="configuration">{t("logs.configuration")}</SelectItem>
-                <SelectItem value="threshold">{t("logs.threshold")}</SelectItem>
+                <SelectItem value="all">Semua Jenis</SelectItem>
+                <SelectItem value="alert">Peringatan</SelectItem>
+                <SelectItem value="connection">Koneksi</SelectItem>
+                <SelectItem value="disconnection">Pemutusan</SelectItem>
+                <SelectItem value="configuration">Konfigurasi</SelectItem>
+                <SelectItem value="threshold">Ambang Batas</SelectItem>
               </SelectContent>
             </Select>
             <Select value={severityFilter} onValueChange={setSeverityFilter}>
               <SelectTrigger>
-                <SelectValue placeholder={t("logs.severity")} />
+                <SelectValue placeholder="Tingkat Keparahan" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("logs.allSeverities")}</SelectItem>
-                <SelectItem value="high">{t("logs.high")}</SelectItem>
-                <SelectItem value="medium">{t("logs.medium")}</SelectItem>
-                <SelectItem value="low">{t("logs.low")}</SelectItem>
+                <SelectItem value="all">Semua Tingkat</SelectItem>
+                <SelectItem value="high">Tinggi</SelectItem>
+                <SelectItem value="medium">Sedang</SelectItem>
+                <SelectItem value="low">Rendah</SelectItem>
               </SelectContent>
             </Select>
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger>
-                <SelectValue placeholder={t("logs.timePeriod")} />
+                <SelectValue placeholder="Periode Waktu" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("logs.allTime")}</SelectItem>
-                <SelectItem value="today">{t("logs.today")}</SelectItem>
-                <SelectItem value="week">{t("logs.lastWeek")}</SelectItem>
-                <SelectItem value="month">{t("logs.lastMonth")}</SelectItem>
+                <SelectItem value="all">Semua Waktu</SelectItem>
+                <SelectItem value="today">Hari Ini</SelectItem>
+                <SelectItem value="week">Minggu Lalu</SelectItem>
+                <SelectItem value="month">Bulan Lalu</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-muted-foreground">
-              {t("logs.showing")} {filteredLogs.length} {t("logs.of")} {logs.length} {t("logs.events")}
+              Menampilkan {filteredLogs.length} dari {logs.length} kejadian
             </p>
             <Button
               variant="outline"
@@ -215,7 +213,7 @@ export default function LogsPage() {
               onClick={clearFilters}
               className="bg-gradient-to-r from-gray-50 to-blue-50 hover:from-gray-100 hover:to-blue-100 border-blue-200"
             >
-              {t("logs.clearFilters")}
+              Bersihkan Filter
             </Button>
           </div>
         </CardContent>
@@ -224,13 +222,15 @@ export default function LogsPage() {
       {/* Log Entries */}
       <Card className="shadow-lg border-l-4 border-l-green-500">
         <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
-          <CardTitle className="text-green-800">{t("logs.recentEvents")}</CardTitle>
-          <CardDescription className="text-green-600">{t("logs.systemActivity")}</CardDescription>
+          <CardTitle className="text-green-800">Kejadian Terbaru</CardTitle>
+          <CardDescription className="text-green-600">Aktivitas sistem dan peringatan terbaru</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredLogs.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">{t("logs.noEvents")}</div>
+              <div className="text-center py-8 text-muted-foreground">
+                Tidak ada kejadian yang sesuai dengan kriteria Anda
+              </div>
             ) : (
               filteredLogs.map((log) => (
                 <div
@@ -248,7 +248,7 @@ export default function LogsPage() {
                     </div>
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3 mr-1" />
-                      {new Date(log.timestamp).toLocaleDateString()} at {new Date(log.timestamp).toLocaleTimeString()}
+                      {new Date(log.timestamp).toLocaleDateString()} pada {new Date(log.timestamp).toLocaleTimeString()}
                       <span className="mx-2">•</span>
                       {log.device}
                     </div>

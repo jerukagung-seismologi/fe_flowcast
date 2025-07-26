@@ -42,12 +42,10 @@ import {
   type Device,
 } from "@/lib/data/devices"
 import { useAuth } from "@/hooks/useAuth"
-import { useLanguage } from "@/hooks/useLanguage"
 import { EmptyState } from "@/components/empty-state"
 
 export default function DevicesPage() {
   const { user } = useAuth()
-  const { t } = useLanguage()
   const { toast } = useToast()
   const [devices, setDevices] = useState<Device[]>([])
   const [loading, setLoading] = useState(true)
@@ -77,7 +75,7 @@ export default function DevicesPage() {
       console.error("Error loading devices:", error)
       toast({
         title: "Error",
-        description: "Failed to load devices. Please try again.",
+        description: "Gagal memuat perangkat. Silakan coba lagi.",
         variant: "destructive",
       })
     } finally {
@@ -116,14 +114,14 @@ export default function DevicesPage() {
       setIsAddDialogOpen(false)
 
       toast({
-        title: "Success",
-        description: "Device added successfully!",
+        title: "Berhasil",
+        description: "Perangkat berhasil ditambahkan!",
       })
     } catch (error) {
       console.error("Error adding device:", error)
       toast({
         title: "Error",
-        description: "Failed to add device. Please try again.",
+        description: "Gagal menambahkan perangkat. Silakan coba lagi.",
         variant: "destructive",
       })
     }
@@ -137,8 +135,8 @@ export default function DevicesPage() {
       if (updatedDevice) {
         setDevices(devices.map((d) => (d.id === editingDevice.id ? updatedDevice : d)))
         toast({
-          title: "Success",
-          description: "Device updated successfully!",
+          title: "Berhasil",
+          description: "Perangkat berhasil diperbarui!",
         })
       }
       setIsEditDialogOpen(false)
@@ -147,7 +145,7 @@ export default function DevicesPage() {
       console.error("Error updating device:", error)
       toast({
         title: "Error",
-        description: "Failed to update device. Please try again.",
+        description: "Gagal memperbarui perangkat. Silakan coba lagi.",
         variant: "destructive",
       })
     }
@@ -161,15 +159,15 @@ export default function DevicesPage() {
       if (success) {
         setDevices(devices.filter((d) => d.id !== id))
         toast({
-          title: "Success",
-          description: "Device deleted successfully!",
+          title: "Berhasil",
+          description: "Perangkat berhasil dihapus!",
         })
       }
     } catch (error) {
       console.error("Error deleting device:", error)
       toast({
         title: "Error",
-        description: "Failed to delete device. Please try again.",
+        description: "Gagal menghapus perangkat. Silakan coba lagi.",
         variant: "destructive",
       })
     }
@@ -184,14 +182,14 @@ export default function DevicesPage() {
       setIsTokenDialogOpen(true)
 
       toast({
-        title: "Success",
-        description: "Device authentication token generated!",
+        title: "Berhasil",
+        description: "Token autentikasi perangkat berhasil dibuat!",
       })
     } catch (error) {
       console.error("Error generating token:", error)
       toast({
         title: "Error",
-        description: "Failed to generate device token. Please try again.",
+        description: "Gagal membuat token perangkat. Silakan coba lagi.",
         variant: "destructive",
       })
     }
@@ -200,8 +198,8 @@ export default function DevicesPage() {
   const copyTokenToClipboard = () => {
     navigator.clipboard.writeText(deviceToken)
     toast({
-      title: "Copied",
-      description: "Device token copied to clipboard!",
+      title: "Disalin",
+      description: "Token perangkat disalin ke clipboard!",
     })
   }
 
@@ -241,8 +239,8 @@ export default function DevicesPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("devices.title")}</h1>
-            <p className="text-muted-foreground">{t("devices.description")}</p>
+            <h1 className="text-3xl font-bold tracking-tight">Manajemen Perangkat</h1>
+            <p className="text-muted-foreground">Kelola stasiun cuaca dengan metadata komprehensif</p>
           </div>
         </div>
         <EmptyState type="devices" onAction={() => setIsAddDialogOpen(true)} />
@@ -251,12 +249,12 @@ export default function DevicesPage() {
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("devices.addNewDevice")}</DialogTitle>
-              <DialogDescription>{t("devices.addDeviceDescription")}</DialogDescription>
+              <DialogTitle>Tambah Stasiun Cuaca Baru</DialogTitle>
+              <DialogDescription>Tambahkan stasiun monitoring hidrometeorologi baru ke jaringan Anda</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">{t("devices.stationName")}</Label>
+                <Label htmlFor="name">Nama Stasiun</Label>
                 <Input
                   id="name"
                   placeholder="e.g., Weather Station Jakarta Timur"
@@ -265,7 +263,7 @@ export default function DevicesPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="location">{t("devices.location")}</Label>
+                <Label htmlFor="location">Lokasi</Label>
                 <Input
                   id="location"
                   placeholder="e.g., Menteng"
@@ -275,7 +273,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="latitude">{t("devices.latitude")}</Label>
+                  <Label htmlFor="latitude">Latitude</Label>
                   <Input
                     id="latitude"
                     placeholder="-6.2088"
@@ -284,7 +282,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="longitude">{t("devices.longitude")}</Label>
+                  <Label htmlFor="longitude">Longitude</Label>
                   <Input
                     id="longitude"
                     placeholder="106.8456"
@@ -295,7 +293,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="threshold">{t("devices.alertThreshold")}</Label>
+                  <Label htmlFor="threshold">Ambang Batas Siaga (meter)</Label>
                   <Input
                     id="threshold"
                     type="number"
@@ -305,7 +303,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="battery">{t("devices.initialBattery")}</Label>
+                  <Label htmlFor="battery">Level Baterai Awal (%)</Label>
                   <Input
                     id="battery"
                     type="number"
@@ -319,9 +317,9 @@ export default function DevicesPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                {t("common.cancel")}
+                Batal
               </Button>
-              <Button onClick={handleAddDevice}>{t("devices.addDevice")}</Button>
+              <Button onClick={handleAddDevice}>Tambah Perangkat</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -333,24 +331,24 @@ export default function DevicesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("devices.title")}</h1>
-          <p className="text-muted-foreground">{t("devices.description")}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Manajemen Perangkat</h1>
+          <p className="text-muted-foreground">Kelola stasiun cuaca dengan metadata komprehensif</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
               <Plus className="h-4 w-4 mr-2" />
-              {t("devices.addDevice")}
+              Tambah Perangkat
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("devices.addNewDevice")}</DialogTitle>
-              <DialogDescription>{t("devices.addDeviceDescription")}</DialogDescription>
+              <DialogTitle>Tambah Stasiun Cuaca Baru</DialogTitle>
+              <DialogDescription>Tambahkan stasiun monitoring hidrometeorologi baru ke jaringan Anda</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">{t("devices.stationName")}</Label>
+                <Label htmlFor="name">Nama Stasiun</Label>
                 <Input
                   id="name"
                   placeholder="e.g., Weather Station Jakarta Timur"
@@ -359,7 +357,7 @@ export default function DevicesPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="location">{t("devices.location")}</Label>
+                <Label htmlFor="location">Lokasi</Label>
                 <Input
                   id="location"
                   placeholder="e.g., Menteng"
@@ -369,7 +367,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="latitude">{t("devices.latitude")}</Label>
+                  <Label htmlFor="latitude">Latitude</Label>
                   <Input
                     id="latitude"
                     placeholder="-6.2088"
@@ -378,7 +376,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="longitude">{t("devices.longitude")}</Label>
+                  <Label htmlFor="longitude">Longitude</Label>
                   <Input
                     id="longitude"
                     placeholder="106.8456"
@@ -389,7 +387,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="threshold">{t("devices.alertThreshold")}</Label>
+                  <Label htmlFor="threshold">Ambang Batas Siaga (meter)</Label>
                   <Input
                     id="threshold"
                     type="number"
@@ -399,7 +397,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="battery">{t("devices.initialBattery")}</Label>
+                  <Label htmlFor="battery">Level Baterai Awal (%)</Label>
                   <Input
                     id="battery"
                     type="number"
@@ -413,9 +411,9 @@ export default function DevicesPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                {t("common.cancel")}
+                Batal
               </Button>
-              <Button onClick={handleAddDevice}>{t("devices.addDevice")}</Button>
+              <Button onClick={handleAddDevice}>Tambah Perangkat</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -443,7 +441,7 @@ export default function DevicesPage() {
                   ) : (
                     <WifiOff className="h-3 w-3 mr-1" />
                   )}
-                  {device.status}
+                  {device.status === "online" ? "Online" : "Offline"}
                 </Badge>
               </div>
               <CardDescription className="flex items-center text-gray-600">
@@ -457,14 +455,14 @@ export default function DevicesPage() {
                 <div className="flex items-center text-sm">
                   <Calendar className="h-4 w-4 mr-2 text-purple-600" />
                   <div>
-                    <div className="font-medium text-gray-800">{t("devices.registered")}</div>
+                    <div className="font-medium text-gray-800">Terdaftar</div>
                     <div className="text-xs text-gray-600">{device.registrationDate}</div>
                   </div>
                 </div>
                 <div className="flex items-center text-sm">
                   <Battery className={`h-4 w-4 mr-2 ${getBatteryColor(device.batteryLevel).split(" ")[0]}`} />
                   <div>
-                    <div className="font-medium text-gray-800">{t("devices.battery")}</div>
+                    <div className="font-medium text-gray-800">Baterai</div>
                     <div className={`text-xs font-medium ${getBatteryColor(device.batteryLevel).split(" ")[0]}`}>
                       {device.batteryLevel}%
                     </div>
@@ -473,7 +471,7 @@ export default function DevicesPage() {
                 <div className="col-span-2 flex items-center text-sm">
                   <MapPin className="h-4 w-4 mr-2 text-blue-600" />
                   <div>
-                    <div className="font-medium text-gray-800">{t("devices.coordinates")}</div>
+                    <div className="font-medium text-gray-800">Koordinat</div>
                     <div className="text-xs text-gray-600">
                       {device.coordinates.lat.toFixed(4)}, {device.coordinates.lng.toFixed(4)}
                     </div>
@@ -483,14 +481,14 @@ export default function DevicesPage() {
 
               {/* Trend Indicators */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700">{t("devices.currentTrends")}</h4>
+                <h4 className="text-sm font-medium text-gray-700">Tren Saat Ini</h4>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="flex items-center justify-center p-2 bg-gradient-to-br from-blue-100 to-cyan-100 rounded">
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1">
                         {getTrendIcon(device.trends.waterLevel)}
                       </div>
-                      <div className="text-xs text-blue-600">{t("devices.water")}</div>
+                      <div className="text-xs text-blue-600">Air</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-center p-2 bg-gradient-to-br from-orange-100 to-red-100 rounded">
@@ -498,7 +496,7 @@ export default function DevicesPage() {
                       <div className="flex items-center justify-center mb-1">
                         {getTrendIcon(device.trends.temperature)}
                       </div>
-                      <div className="text-xs text-orange-600">{t("devices.temp")}</div>
+                      <div className="text-xs text-orange-600">Suhu</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-center p-2 bg-gradient-to-br from-green-100 to-emerald-100 rounded">
@@ -506,7 +504,7 @@ export default function DevicesPage() {
                       <div className="flex items-center justify-center mb-1">
                         {getTrendIcon(device.trends.rainfall)}
                       </div>
-                      <div className="text-xs text-green-600">{t("devices.rain")}</div>
+                      <div className="text-xs text-green-600">Hujan</div>
                     </div>
                   </div>
                 </div>
@@ -515,7 +513,7 @@ export default function DevicesPage() {
               {/* Device Settings */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t("devices.alertThreshold")}:</span>
+                  <span className="text-gray-600">Ambang Batas Siaga:</span>
                   <span className="font-medium text-purple-600">{device.threshold}m</span>
                 </div>
               </div>
@@ -528,7 +526,7 @@ export default function DevicesPage() {
                   onClick={() => openEditDialog(device)}
                 >
                   <Edit className="h-3 w-3 mr-1 text-blue-600" />
-                  {t("common.edit")}
+                  Edit
                 </Button>
                 <Button
                   variant="outline"
@@ -537,7 +535,7 @@ export default function DevicesPage() {
                   onClick={() => handleGenerateToken(device.id)}
                 >
                   <Key className="h-3 w-3 mr-1 text-green-600" />
-                  {t("devices.token")}
+                  Token
                 </Button>
                 <Button
                   variant="outline"
@@ -553,7 +551,7 @@ export default function DevicesPage() {
               {device.batteryLevel < 30 && (
                 <div className="flex items-center text-xs text-orange-700 bg-gradient-to-r from-orange-100 to-yellow-100 p-2 rounded border border-orange-200">
                   <Battery className="h-3 w-3 mr-1" />
-                  {t("devices.lowBattery")}
+                  Baterai lemah - perlu perawatan
                 </div>
               )}
             </CardContent>
@@ -565,13 +563,13 @@ export default function DevicesPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("devices.editDevice")}</DialogTitle>
-            <DialogDescription>{t("devices.editDeviceDescription")}</DialogDescription>
+            <DialogTitle>Edit Perangkat</DialogTitle>
+            <DialogDescription>Perbarui informasi perangkat, pengaturan, dan metadata</DialogDescription>
           </DialogHeader>
           {editingDevice && (
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="edit-name">{t("devices.stationName")}</Label>
+                <Label htmlFor="edit-name">Nama Stasiun</Label>
                 <Input
                   id="edit-name"
                   value={editingDevice.name}
@@ -579,7 +577,7 @@ export default function DevicesPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-location">{t("devices.location")}</Label>
+                <Label htmlFor="edit-location">Lokasi</Label>
                 <Input
                   id="edit-location"
                   value={editingDevice.location}
@@ -588,7 +586,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-status">{t("devices.status")}</Label>
+                  <Label htmlFor="edit-status">Status</Label>
                   <Select
                     value={editingDevice.status}
                     onValueChange={(value: "online" | "offline") =>
@@ -599,13 +597,13 @@ export default function DevicesPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="online">{t("devices.online")}</SelectItem>
-                      <SelectItem value="offline">{t("devices.offline")}</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                      <SelectItem value="offline">Offline</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-battery">{t("devices.batteryLevel")}</Label>
+                  <Label htmlFor="edit-battery">Level Baterai (%)</Label>
                   <Input
                     id="edit-battery"
                     type="number"
@@ -619,7 +617,7 @@ export default function DevicesPage() {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-threshold">{t("devices.alertThreshold")}</Label>
+                <Label htmlFor="edit-threshold">Ambang Batas Siaga</Label>
                 <Input
                   id="edit-threshold"
                   type="number"
@@ -630,7 +628,7 @@ export default function DevicesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-lat">{t("devices.latitude")}</Label>
+                  <Label htmlFor="edit-lat">Latitude</Label>
                   <Input
                     id="edit-lat"
                     type="number"
@@ -645,7 +643,7 @@ export default function DevicesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-lng">{t("devices.longitude")}</Label>
+                  <Label htmlFor="edit-lng">Longitude</Label>
                   <Input
                     id="edit-lng"
                     type="number"
@@ -664,9 +662,9 @@ export default function DevicesPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              {t("common.cancel")}
+              Batal
             </Button>
-            <Button onClick={handleEditDevice}>{t("common.save")}</Button>
+            <Button onClick={handleEditDevice}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -675,8 +673,8 @@ export default function DevicesPage() {
       <Dialog open={isTokenDialogOpen} onOpenChange={setIsTokenDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("devices.deviceToken")}</DialogTitle>
-            <DialogDescription>{t("devices.tokenDescription")}</DialogDescription>
+            <DialogTitle>Token Perangkat</DialogTitle>
+            <DialogDescription>Gunakan token ini untuk mengautentikasi perangkat IoT Anda</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 bg-gray-100 rounded-lg">
@@ -688,11 +686,11 @@ export default function DevicesPage() {
               </div>
             </div>
             <div className="text-sm text-muted-foreground">
-              <p>{t("devices.tokenWarning")}</p>
+              <p>Simpan token ini dengan aman. Token akan kedaluwarsa dalam 30 hari.</p>
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => setIsTokenDialogOpen(false)}>{t("common.close")}</Button>
+            <Button onClick={() => setIsTokenDialogOpen(false)}>Tutup</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
