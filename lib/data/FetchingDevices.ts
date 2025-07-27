@@ -14,7 +14,7 @@ import {
   Timestamp,
 } from "firebase/firestore"
 import { db } from "@/lib/FirebaseConfig"
-import { addLogEvent, LogEvent } from "./FetchingLogs"
+import { addLogEvent, LogEvent } from "@/lib/data/FetchingLogs"
 
 export interface Device {
   id: string

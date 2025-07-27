@@ -49,9 +49,6 @@ export function fetchDeviceLocation(): Promise<DeviceCoordinates> {
           case error.TIMEOUT:
             errorMessage = "Permintaan untuk mendapatkan lokasi melebihi batas waktu.";
             break;
-          case error.UNKNOWN_ERROR:
-            errorMessage = "Terjadi kesalahan yang tidak diketahui saat mendapatkan lokasi.";
-            break;
           default:
             errorMessage = `Kesalahan Geolocation: ${error.message}`;
         }
