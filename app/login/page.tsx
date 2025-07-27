@@ -227,9 +227,9 @@ export default function AuthPage() {
       <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-2">
           <div className="flex justify-center items-center mb-4">
-            <Image src="https://img.icons8.com/color/240/heavy-rain.png" alt="Infraseis Logo" width={80} height={80} className="rounded-full" />
+            <Image src="https://img.icons8.com/color/240/heavy-rain.png" alt="logo" width={80} height={80} className="rounded-full" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">Infraseis Hidrometeorologi</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gray-900">HydroMeteo Sense</CardTitle>
           <CardDescription className="text-gray-600">
             {isSignUp
               ? "Buat akun Anda untuk mulai memantau kondisi hidrometeorologi."
@@ -282,7 +282,7 @@ export default function AuthPage() {
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Contoh: Budi Santoso"
+                    placeholder="Masukan Nama Anda"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     onBlur={() => handleInputBlur("name")}

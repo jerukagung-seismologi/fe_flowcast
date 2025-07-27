@@ -157,7 +157,7 @@ export default function LandingPage() {
               <div className="p-2 bg-blue-600 rounded-lg">
                 <CloudRain className="h-6 w-6 text-white" />
               </div>
-              <span className="ml-3 text-xl font-bold text-gray-900">Portal Hidrometeorologi</span>
+              <span className="ml-3 text-xl font-bold text-gray-900">HydroMeteo Sense</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/login">
@@ -182,11 +182,10 @@ export default function LandingPage() {
               Analisis Tren & Intelijen Perangkat
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Intelijen Cuaca Cerdas dengan Analisis Tren
+              Pemantauan Cuaca Cerdas dengan Analisis Tren
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto">
-              Platform kami menyediakan analisis tren visual dan metadata perangkat yang komprehensif untuk pemantauan
-              hidrometeorologi yang tak tertandingi.
+              Menyediakan analisis tren visual dan metadata perangkat yang komprehensif untuk pemantauan hidrometeorologi.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/login">
@@ -334,30 +333,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-blue-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-white mb-2">30,000+</div>
-              <div className="text-blue-100">Stasiun Cuaca Cerdas</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-white mb-2">200+</div>
-              <div className="text-blue-100">Negara yang Dipantau</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-white mb-2">99.9%</div>
-              <div className="text-blue-100">Akurasi Tren</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-white mb-2">24/7</div>
-              <div className="text-blue-100">Pemantauan Cerdas</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -399,7 +374,7 @@ export default function LandingPage() {
                 <div className="p-2 bg-blue-600 rounded-lg">
                   <CloudRain className="h-6 w-6 text-white" />
                 </div>
-                <span className="ml-3 text-xl font-bold">Portal Hidrometeorologi</span>
+                <span className="ml-3 text-xl font-bold">HydroMeteo Sense</span>
               </div>
               <p className="text-gray-400">
                 Intelijen hidrometeorologi cerdas dengan analisis tren canggih dan manajemen perangkat yang komprehensif.
@@ -457,7 +432,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Infraseis Hidrometeorologi. Hak Cipta Dilindungi.</p>
+            <p>&copy; 2025 HydroMeteo Sense. Hak Cipta Dilindungi Undang-undang.</p>
           </div>
         </div>
       </footer>

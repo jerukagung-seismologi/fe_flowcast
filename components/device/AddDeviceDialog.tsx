@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
 import { Device } from "@/lib/data/FetchingDevices"
+import { fetchDeviceLocation } from "@/lib/data/FetchingLocation"
 
 type NewDeviceData = Omit<Device, "id" | "authToken" | "registrationDate" | "userId">
 
@@ -56,6 +57,19 @@ export function AddDeviceDialog({
       onTokenGenerated(addedDevice.authToken)
     }
     // Reset form after successful addition is handled in parent
+  }
+
+  const handleDetectLocation = async () => {
+    try {
+      const coords = await fetchDeviceLocation()
+      setNewDevice({
+        ...newDevice,
+        latitude: coords.lat.toString(),
+        longitude: coords.lng.toString(),
+      })
+    } catch (err) {
+      alert("Gagal mengambil lokasi perangkat: " + (err as Error).message)
+    }
   }
 
   return (
@@ -107,6 +121,14 @@ export function AddDeviceDialog({
               />
             </div>
           </div>
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full mb-2"
+            onClick={handleDetectLocation}
+          >
+            Deteksi Lokasi Otomatis
+          </Button>
           <div className="grid gap-2">
             <Label htmlFor="threshold">Ambang Batas Siaga (meter)</Label>
             <Input
