@@ -37,20 +37,20 @@ export function DeviceTokenDialog({ open, onOpenChange, token }: DeviceTokenDial
           <DialogDescription>Gunakan token ini untuk mengautentikasi perangkat IoT Anda</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="p-4 bg-gray-100 rounded-lg">
+          <div className="p-4 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-between">
-              <code className="text-sm font-mono break-all">{token}</code>
-              <Button variant="outline" size="sm" onClick={copyTokenToClipboard} className="ml-2 bg-transparent">
+              <code className="text-sm font-mono break-all text-blue-700">{token}</code>
+              <Button variant="outline" size="sm" onClick={copyTokenToClipboard} className="ml-2 bg-blue-100 text-blue-700 hover:bg-blue-200">
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-blue-500">
             <p>Simpan token ini dengan aman. Token ini tidak akan kedaluwarsa.</p>
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Tutup</Button>
+          <Button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => onOpenChange(false)}>Tutup</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

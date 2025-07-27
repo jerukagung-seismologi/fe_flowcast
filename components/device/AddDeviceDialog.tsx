@@ -82,40 +82,44 @@ export function AddDeviceDialog({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Nama Stasiun</Label>
+            <Label htmlFor="name" className="text-gray-800">Nama Stasiun</Label>
             <Input
               id="name"
               placeholder="e.g., Weather Station Jakarta Timur"
+              className="placeholder:text-gray-400"
               value={newDevice.name}
               onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="location">Lokasi</Label>
+            <Label htmlFor="location" className="text-gray-800">Lokasi</Label>
             <Input
               id="location"
               placeholder="e.g., Menteng"
+              className="placeholder:text-gray-400"
               value={newDevice.location}
               onChange={(e) => setNewDevice({ ...newDevice, location: e.target.value })}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="latitude">Latitude</Label>
+              <Label htmlFor="latitude" className="text-gray-800">Latitude</Label>
               <Input
                 id="latitude"
                 placeholder="-6.2088"
                 type="number"
+                className="placeholder:text-gray-400"
                 value={newDevice.latitude}
                 onChange={(e) => setNewDevice({ ...newDevice, latitude: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="longitude">Longitude</Label>
+              <Label htmlFor="longitude" className="text-gray-800">Longitude</Label>
               <Input
                 id="longitude"
                 placeholder="106.8456"
                 type="number"
+                className="placeholder:text-gray-400"
                 value={newDevice.longitude}
                 onChange={(e) => setNewDevice({ ...newDevice, longitude: e.target.value })}
               />
@@ -124,28 +128,29 @@ export function AddDeviceDialog({
           <Button
             type="button"
             variant="secondary"
-            className="w-full mb-2"
+            className="w-full mb-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
             onClick={handleDetectLocation}
           >
             Deteksi Lokasi Otomatis
           </Button>
           <div className="grid gap-2">
-            <Label htmlFor="threshold">Ambang Batas Siaga (meter)</Label>
+            <Label htmlFor="threshold" className="text-gray-800">Ambang Batas Siaga (meter)</Label>
             <Input
               id="threshold"
               placeholder="e.g., 2.0"
               type="number"
               step="0.1"
+              className="placeholder:text-gray-400"
               value={newDevice.threshold}
               onChange={(e) => setNewDevice({ ...newDevice, threshold: e.target.value })}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" className="text-gray-600 border-gray-400" onClick={() => onOpenChange(false)}>
             Batal
           </Button>
-          <Button onClick={handleAdd}>Tambah Perangkat</Button>
+          <Button className="bg-blue-600 text-white hover:bg-blue-700" onClick={handleAdd}>Tambah Perangkat</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

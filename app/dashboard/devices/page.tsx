@@ -30,6 +30,7 @@ import { EditDeviceDialog } from "@/components/device/EditDeviceDialog"
 import { DeviceTokenDialog } from "@/components/device/DeviceTokenDialog"
 import { DeleteConfirmationDialog } from "@/components/device/DeleteConfirmationDialog"
 import LoadingSpinner from "@/components/LoadingSpinner"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function DevicesPage() {
   const { user } = useAuth()
@@ -44,6 +45,7 @@ export default function DevicesPage() {
   const [deviceToDelete, setDeviceToDelete] = useState<{ id: string; name: string } | null>(null)
   const [editingDevice, setEditingDevice] = useState<DeviceWithSensors | null>(null)
   const [deviceToken, setDeviceToken] = useState<string>("")
+  const isMobile = useIsMobile()
 
   const loadDevices = async () => {
     if (!user?.uid) return
@@ -206,16 +208,42 @@ export default function DevicesPage() {
             <h1 className="text-3xl font-bold tracking-tight">Manajemen Perangkat</h1>
             <p className="text-muted-foreground">Kelola stasiun cuaca dengan metadata komprehensif</p>
           </div>
+          {/* Tambahkan button di sini jika mobile */}
+          {isMobile && (
+            <AddDeviceDialog
+              open={isAddDialogOpen}
+              onOpenChange={setIsAddDialogOpen}
+              onAddDevice={handleAddDevice}
+              onTokenGenerated={setDeviceToken}
+              trigger={
+                <Button
+                  className="w-full flex justify-center items-center bg-emerald-600 hover:bg-blue-600"
+                  size="icon"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span className="sr-only">Tambah Perangkat</span>
+                </Button>
+              }
+            />
+          )}
         </div>
         <EmptyState type="devices" onAction={() => setIsAddDialogOpen(true)} />
 
         {/* Add Device Dialog */}
-        <AddDeviceDialog
-          open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          onAddDevice={handleAddDevice}
-          onTokenGenerated={setDeviceToken}
-        />
+        {!isMobile && (
+          <AddDeviceDialog
+            open={isAddDialogOpen}
+            onOpenChange={setIsAddDialogOpen}
+            onAddDevice={handleAddDevice}
+            onTokenGenerated={setDeviceToken}
+            trigger={
+              <Button className="bg-emerald-600 hover:bg-blue-600">
+                <Plus className="h-4 w-4 mr-2" />
+                Tambah Perangkat
+              </Button>
+            }
+          />
+        )}
       </div>
     )
   }
@@ -227,16 +255,27 @@ export default function DevicesPage() {
           <h1 className="text-3xl font-bold tracking-tight">Manajemen Perangkat</h1>
           <p className="text-muted-foreground">Kelola stasiun cuaca dengan metadata komprehensif</p>
         </div>
+        {/* Button responsif */}
         <AddDeviceDialog
           open={isAddDialogOpen}
           onOpenChange={setIsAddDialogOpen}
           onAddDevice={handleAddDevice}
           onTokenGenerated={setDeviceToken}
           trigger={
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Tambah Perangkat
-            </Button>
+            isMobile ? (
+              <Button
+                className="w-12 h-12 p-0 rounded-full bg-emerald-600 hover:bg-blue-600"
+                size="icon"
+              >
+                <Plus className="h-6 w-6" />
+                <span className="sr-only">Tambah Perangkat</span>
+              </Button>
+            ) : (
+              <Button className="bg-emerald-600 hover:bg-blue-600">
+                <Plus className="h-4 w-4 mr-2" />
+                Tambah Perangkat
+              </Button>
+            )
           }
         />
       </div>
