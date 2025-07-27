@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { type DeviceWithSensors } from "@/lib/data/FetchingData"
+import { fetchDeviceLocation } from "@/lib/data/FetchingLocation"
 
 interface EditDeviceDialogProps {
   open: boolean
@@ -30,6 +31,22 @@ export function EditDeviceDialog({
   setEditingDevice,
 }: EditDeviceDialogProps) {
   if (!device) return null
+
+  const handleDetectLocation = async () => {
+    try {
+      const coords = await fetchDeviceLocation()
+      setEditingDevice({
+        ...device,
+        coordinates: {
+          ...device.coordinates,
+          lat: coords.lat,
+          lng: coords.lng,
+        },
+      })
+    } catch (err) {
+      alert("Gagal mengambil lokasi perangkat: " + (err as Error).message)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -87,6 +104,14 @@ export function EditDeviceDialog({
               />
             </div>
           </div>
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full mb-2"
+            onClick={handleDetectLocation}
+          >
+            Deteksi Lokasi Otomatis
+          </Button>
           <div className="grid gap-2">
             <Label htmlFor="edit-threshold">Ambang Batas Siaga (meter)</Label>
             <Input
