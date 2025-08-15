@@ -1,5 +1,5 @@
-import { fetchDevices } from "./FetchingDevices"
-import { fetchLogs } from "./FetchingLogs"
+import { fetchDevices } from "@/lib/data/FetchingDevices"
+import { fetchLogs } from "@/lib/data/FetchingLogs"
 
 export interface AnalyticsData {
   devicePerformance: DevicePerformance[]
