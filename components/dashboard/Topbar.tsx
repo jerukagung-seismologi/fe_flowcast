@@ -9,11 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Settings, LogOut, Menu, User } from "lucide-react"
-import type { User as FirebaseUser } from "firebase/auth"
 import type { UserProfile } from "@/hooks/useAuth"
 
 interface TopbarProps {
-  user: FirebaseUser
+  user: UserProfile | null
   profile: UserProfile | null
   setSidebarOpen: (open: boolean) => void
   handleLogout: () => void
@@ -29,7 +28,7 @@ export function Topbar({ user, profile, setSidebarOpen, handleLogout }: TopbarPr
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div className="flex flex-1 items-center">
           <h1 className="text-lg font-semibold text-gray-900">
-            Selamat Datang, {profile?.displayName || user.email?.split("@")[0]}
+            Selamat Datang, {profile?.displayName || profile?.name || profile?.username || user?.username}
           </h1>
         </div>
         <div className="flex items-center gap-x-4 lg:gap-x-6">
@@ -37,7 +36,7 @@ export function Topbar({ user, profile, setSidebarOpen, handleLogout }: TopbarPr
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-x-2">
                 <User className="h-5 w-5 text-gray-600" />
-                <span className="hidden md:inline">{profile?.displayName || user.email?.split("@")[0]}</span>
+                <span className="hidden md:inline">{profile?.displayName || profile?.name || profile?.username || user?.username}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

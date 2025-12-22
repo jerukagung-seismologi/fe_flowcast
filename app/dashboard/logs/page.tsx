@@ -18,7 +18,14 @@ import {
   Clock,
   Trash2,
 } from "lucide-react"
-import { fetchLogs, fetchFilteredLogs, deleteLogEvent, type LogEvent, type LogFilters } from "@/lib/data/FetchingLogs"
+import { fetchLogs, fetchFilteredLogs, deleteLogEvent, type LogEvent } from "@/lib/data/LaravelLogs"
+
+export interface LogFilters {
+  search: string
+  type: string
+  severity: string
+  dateFrom: string
+}
 import { useAuth } from "@/hooks/useAuth"
 import { EmptyState } from "@/components/empty-state"
 import LoadingSpinner from "@/components/LoadingSpinner"
@@ -51,7 +58,7 @@ export default function LogsPage() {
     }
 
     loadLogs()
-  }, [user?.uid])
+  }, [user?.id])
 
   // Filter logs based on search and filters
   useEffect(() => {
@@ -66,7 +73,7 @@ export default function LogsPage() {
           dateRange: dateFilter !== "all" ? dateFilter : undefined,
         }
 
-        const filtered = await fetchFilteredLogs(user.uid, filters)
+        const filtered = await fetchFilteredLogs(String(user.id), filters)
         setFilteredLogs(filtered)
       } catch (error) {
         console.error("Error filtering logs:", error)
@@ -74,14 +81,14 @@ export default function LogsPage() {
     }
 
     applyFilters()
-  }, [searchTerm, typeFilter, severityFilter, dateFilter, user?.uid])
+  }, [searchTerm, typeFilter, severityFilter, dateFilter, user?.id])
 
   const handleDeleteLog = async (logId: string) => {
-    if (!user?.uid) return
+    if (!user?.id) return
 
     if (window.confirm("Apakah Anda yakin ingin menghapus log ini?")) {
       try {
-        await deleteLogEvent(user.uid, logId)
+        await deleteLogEvent(String(user.id), logId)
         setLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId))
         setFilteredLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId))
       } catch (error) {

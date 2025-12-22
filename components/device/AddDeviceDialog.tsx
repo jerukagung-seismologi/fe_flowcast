@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
-import { Device } from "@/lib/data/FetchingDevices"
+import { Device } from "@/lib/data/LaravelDevices"
 import { fetchDeviceLocation } from "@/lib/data/FetchingLocation"
 
 type NewDeviceData = Omit<Device, "id" | "authToken" | "registrationDate" | "userId">

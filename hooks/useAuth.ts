@@ -1,12 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { type User, onAuthStateChanged } from "firebase/auth"
-import { auth } from "@/lib/FirebaseConfig"
-import { getUserProfile, type UserProfile } from "@/lib/FetchingAuth"
+import { getUserProfile, isAuthenticated, type UserProfile } from "@/lib/FetchingAuth"
 
 export interface AuthState {
-  user: User | null
+  user: UserProfile | null
   profile: UserProfile | null
   loading: boolean
   error: string | null
@@ -21,22 +19,28 @@ export const useAuth = () => {
   })
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+    const checkAuth = async () => {
+      console.log("useAuth - Checking authentication...")
+      if (isAuthenticated()) {
         try {
-          const profile = await getUserProfile(user.uid)
+          console.log("useAuth - User is authenticated, fetching profile...")
+          const profile = await getUserProfile()
+          console.log("useAuth - Profile loaded:", profile)
           setAuthState({
-            user,
+            user: profile,
             profile,
             loading: false,
             error: null,
           })
         } catch (error) {
+          // Token invalid or expired, clear localStorage
+          localStorage.removeItem("auth_token")
+          localStorage.removeItem("user_info")
           setAuthState({
-            user,
+            user: null,
             profile: null,
             loading: false,
-            error: "Failed to load user profile",
+            error: "Session expired. Please login again.",
           })
         }
       } else {
@@ -47,12 +51,13 @@ export const useAuth = () => {
           error: null,
         })
       }
-    })
+    }
 
-    return () => unsubscribe()
+    checkAuth()
   }, [])
 
   return authState
 }
+
 export { UserProfile }
 

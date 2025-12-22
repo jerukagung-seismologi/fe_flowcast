@@ -1,201 +1,205 @@
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-  updatePassword,
-  deleteUser,
-  type User,
-  type AuthError,
-} from "firebase/auth"
-import { doc, setDoc, getDoc, Timestamp, updateDoc, deleteDoc } from "firebase/firestore"
-import { auth, db } from "./FirebaseConfig"
+import axios from "axios"
+import { API_BASE_URL } from "./FirebaseConfig"
 
 export interface UserProfile {
-  uid: string
+  id: number
+  username: string
   email: string
-  displayName: string
-  createdAt: Date | Timestamp
-  lastLoginAt: Date | Timestamp
+  name?: string
+  displayName?: string
   role: "admin" | "user"
+  signed_in?: string | null
+  created_at: string
+  updated_at: string
 }
 
-// Sign up with email and password
+export interface LoginResponse {
+  success: boolean
+  message: string
+  data: {
+    access_token: string
+    token_type: string
+    user: UserProfile
+  }
+}
+
+// Sign up with email and password (Laravel)
 export const signUpWithEmail = async (
   email: string,
   password: string,
-  displayName: string,
-): Promise<{ user: User; profile: UserProfile }> => {
+  name: string,
+  username: string,
+): Promise<{ token: string; user: UserProfile }> => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-    const user = userCredential.user
+    const response = await axios.post<LoginResponse>(`${API_BASE_URL}/register`, {
+      username,
+      email,
+      password,
+      name,
+    })
 
-    // Update user profile
-    await updateProfile(user, { displayName })
+    const { access_token, user } = response.data.data
+    
+    // Save to localStorage
+    localStorage.setItem("auth_token", access_token)
+    localStorage.setItem("user_info", JSON.stringify(user))
 
-    // Create user profile in Firestore
-    const userProfile: UserProfile = {
-      uid: user.uid,
-      email: user.email!,
-      displayName,
-      createdAt: new Date(),
-      lastLoginAt: new Date(),
-      role: "user",
-    }
-
-    await setDoc(doc(db, "users", user.uid), userProfile)
-
-    return { user, profile: userProfile }
-  } catch (error) {
-    const authError = error as AuthError
-    throw new Error(getAuthErrorMessage(authError.code))
+    return { token: access_token, user }
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Registration failed"
+    throw new Error(message)
   }
 }
 
-// Sign in with email and password
+// Sign in with email and password (Laravel)
 export const signInWithEmail = async (
-  email: string,
+  username: string,
   password: string,
-): Promise<{ user: User; profile: UserProfile }> => {
+): Promise<{ token: string; user: UserProfile }> => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
-    const user = userCredential.user
+    console.log("Attempting login to:", `${API_BASE_URL}/login`)
+    console.log("With credentials:", { username })
+    
+    const response = await axios.post<LoginResponse>(`${API_BASE_URL}/login`, {
+      username,
+      password,
+    })
 
-    // Update last login time
-    const userDocRef = doc(db, "users", user.uid)
-    const userDoc = await getDoc(userDocRef)
+    console.log("Login response:", response.data)
 
-    if (userDoc.exists()) {
-      const profile = userDoc.data() as UserProfile
-      const updatedProfile = {
-        ...profile,
-        lastLoginAt: new Date(),
-      }
-      await setDoc(userDocRef, updatedProfile, { merge: true })
-      return { user, profile: updatedProfile }
-    } else {
-      // Create profile if it doesn't exist (for existing users)
-      const userProfile: UserProfile = {
-        uid: user.uid,
-        email: user.email!,
-        displayName: user.displayName || email.split("@")[0],
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        role: "user",
-      }
-      await setDoc(userDocRef, userProfile)
-      return { user, profile: userProfile }
+    const { access_token, user } = response.data.data
+    
+    // Save to localStorage
+    localStorage.setItem("auth_token", access_token)
+    localStorage.setItem("user_info", JSON.stringify(user))
+
+    console.log("Token saved to localStorage")
+
+    return { token: access_token, user }
+  } catch (error: any) {
+    console.error("Login error details:", error)
+    console.error("Error response:", error.response)
+    
+    if (error.code === "ERR_NETWORK") {
+      throw new Error("Tidak dapat terhubung ke server Laravel. Pastikan server Laravel berjalan di http://127.0.0.1:8000")
     }
-  } catch (error) {
-    const authError = error as AuthError
-    throw new Error(getAuthErrorMessage(authError.code))
+    
+    const message = error.response?.data?.message || error.message || "Login gagal"
+    throw new Error(message)
   }
 }
 
-// Sign out
+// Sign out (Laravel)
 export const signOutUser = async (): Promise<void> => {
   try {
-    await signOut(auth)
-  } catch (error) {
-    const authError = error as AuthError
-    throw new Error(getAuthErrorMessage(authError.code))
+    const token = localStorage.getItem("auth_token")
+    if (token) {
+      await axios.post(`${API_BASE_URL}/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    }
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_info")
+  } catch (error: any) {
+    // Clear local storage even if API call fails
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_info")
+    throw new Error("Logout failed")
   }
 }
 
-// Get user profile
-export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
+// Get user profile (Laravel)
+export const getUserProfile = async (): Promise<UserProfile | null> => {
   try {
-    const userDoc = await getDoc(doc(db, "users", uid))
-    if (userDoc.exists()) {
-      return userDoc.data() as UserProfile
-    }
-    return null
+    const token = localStorage.getItem("auth_token")
+    const userInfo = localStorage.getItem("user_info")
+    
+    if (!token || !userInfo) return null
+
+    // Parse user info from localStorage
+    const user = JSON.parse(userInfo) as UserProfile
+    
+    // Optionally, verify token with API
+    // const response = await axios.get<{ success: boolean; data: UserProfile }>(
+    //   `${API_BASE_URL}/user`,
+    //   { headers: { Authorization: `Bearer ${token}` } }
+    // )
+    // return response.data.data
+    
+    return user
   } catch (error) {
     console.error("Error getting user profile:", error)
     return null
   }
 }
 
-// Update user profile
-export const updateUserProfileData = async (uid: string, displayName: string): Promise<void> => {
+// Update user profile (Laravel)
+export const updateUserProfileData = async (name: string, email?: string): Promise<void> => {
   try {
-    const user = auth.currentUser
-    if (!user || user.uid !== uid) {
-      throw new Error("User not authenticated or permission denied.")
-    }
+    const token = localStorage.getItem("auth_token")
+    if (!token) throw new Error("User not authenticated")
 
-    // Update Firebase Auth profile
-    await updateProfile(user, { displayName })
+    const response = await axios.put(
+      `${API_BASE_URL}/user/profile`,
+      { name, email },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
 
-    // Update Firestore profile
-    const userDocRef = doc(db, "users", uid)
-    await updateDoc(userDocRef, { displayName })
-  } catch (error) {
-    const authError = error as AuthError
-    throw new Error(getAuthErrorMessage(authError.code))
+    // Update localStorage with new user info
+    const userInfo = JSON.parse(localStorage.getItem("user_info") || "{}")
+    localStorage.setItem("user_info", JSON.stringify({ ...userInfo, name, email: email || userInfo.email }))
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Update profile failed"
+    throw new Error(message)
   }
 }
 
-// Update user password
-export const updateUserPassword = async (newPassword: string): Promise<void> => {
+// Update user password (Laravel)
+export const updateUserPassword = async (currentPassword: string, newPassword: string): Promise<void> => {
   try {
-    const user = auth.currentUser
-    if (!user) {
-      throw new Error("User not authenticated.")
-    }
-    await updatePassword(user, newPassword)
-  } catch (error) {
-    const authError = error as AuthError
-    // This error often means the user needs to re-authenticate
-    if (authError.code === "auth/requires-recent-login") {
-      throw new Error("This operation is sensitive and requires recent authentication. Please sign out and sign in again before retrying.")
-    }
-    throw new Error(getAuthErrorMessage(authError.code))
+    const token = localStorage.getItem("auth_token")
+    if (!token) throw new Error("User not authenticated")
+
+    await axios.put(
+      `${API_BASE_URL}/user/password`,
+      { current_password: currentPassword, new_password: newPassword },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Update password failed"
+    throw new Error(message)
   }
 }
 
-// Delete user account
+// Delete user account (Laravel)
 export const deleteUserAccount = async (): Promise<void> => {
   try {
-    const user = auth.currentUser
-    if (!user) {
-      throw new Error("User not authenticated.")
-    }
-    const uid = user.uid
+    const token = localStorage.getItem("auth_token")
+    if (!token) throw new Error("User not authenticated")
 
-    // Delete Firestore document first
-    const userDocRef = doc(db, "users", uid)
-    await deleteDoc(userDocRef)
+    await axios.delete(`${API_BASE_URL}/user`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
 
-    // Delete user from Firebase Auth
-    await deleteUser(user)
-  } catch (error) {
-    const authError = error as AuthError
-    if (authError.code === "auth/requires-recent-login") {
-      throw new Error("This operation is sensitive and requires recent authentication. Please sign out and sign in again before retrying.")
-    }
-    throw new Error(getAuthErrorMessage(authError.code))
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_info")
+  } catch (error: any) {
+    const message = error.response?.data?.message || "Delete account failed"
+    throw new Error(message)
   }
 }
 
-// Auth error messages
-const getAuthErrorMessage = (errorCode: string): string => {
-  switch (errorCode) {
-    case "auth/user-not-found":
-      return "No account found with this email address."
-    case "auth/wrong-password":
-      return "Incorrect password. Please try again."
-    case "auth/email-already-in-use":
-      return "An account with this email already exists."
-    case "auth/weak-password":
-      return "Password should be at least 6 characters long."
-    case "auth/invalid-email":
-      return "Please enter a valid email address."
-    case "auth/too-many-requests":
-      return "Too many failed attempts. Please try again later."
-    case "auth/network-request-failed":
-      return "Network error. Please check your connection."
-    default:
-      return "An error occurred during authentication. Please try again."
+// Get current user from localStorage
+export const getCurrentUser = (): UserProfile | null => {
+  try {
+    const userInfo = localStorage.getItem("user_info")
+    return userInfo ? JSON.parse(userInfo) : null
+  } catch (error) {
+    return null
   }
+}
+
+// Check if user is authenticated
+export const isAuthenticated = (): boolean => {
+  return !!localStorage.getItem("auth_token")
 }

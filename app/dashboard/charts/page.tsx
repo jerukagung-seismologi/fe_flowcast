@@ -42,7 +42,7 @@ import {
   type ComparisonData,
   type WeatherTrend,
 } from "@/lib/data/charts"
-import { fetchDevices, type Device } from "@/lib/data/FetchingDevices"
+import { fetchDevices, type Device } from "@/lib/data/LaravelDevices"
 import { EmptyState } from "@/components/empty-state"
 import LoadingSpinner from "@/components/LoadingSpinner"
 
@@ -60,16 +60,16 @@ export default function ChartsPage() {
   const [refreshing, setRefreshing] = useState(false)
 
   const loadChartsData = async () => {
-    if (!user?.uid) return
+    if (!user?.id) return
 
     try {
       setLoading(true)
       const [devicesData, waterData, rainData, compData, trendsData] = await Promise.all([
-        fetchDevices(user.uid),
-        fetchWaterLevelData(user.uid, selectedDevice !== "all" ? selectedDevice : undefined),
-        fetchRainfallData(user.uid, selectedDevice !== "all" ? selectedDevice : undefined),
-        fetchComparisonData(user.uid),
-        fetchWeatherTrends(user.uid),
+        fetchDevices(String(user.id)),
+        fetchWaterLevelData(String(user.id), selectedDevice !== "all" ? selectedDevice : undefined),
+        fetchRainfallData(String(user.id), selectedDevice !== "all" ? selectedDevice : undefined),
+        fetchComparisonData(String(user.id)),
+        fetchWeatherTrends(String(user.id)),
       ])
 
       setDevices(devicesData)

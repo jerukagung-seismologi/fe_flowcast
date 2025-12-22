@@ -1,5 +1,5 @@
-import { fetchDevices } from "@/lib/data/FetchingDevices"
-import { fetchLogs } from "@/lib/data/FetchingLogs"
+import { fetchDevices } from "@/lib/data/LaravelDevices"
+import { fetchLogs } from "@/lib/data/LaravelLogs"
 
 export interface AnalyticsData {
   devicePerformance: DevicePerformance[]

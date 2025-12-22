@@ -2,7 +2,6 @@
 
 import type React from "react"
 import Image from "next/image"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -111,10 +110,10 @@ export default function AuthPage() {
       newErrors.name = "Nama minimal 2 karakter"
     }
 
-    // Email validation
+    // Email/Username validation
     if (!formData.email.trim()) {
-      newErrors.email = "Email wajib diisi"
-    } else if (!validateEmail(formData.email)) {
+      newErrors.email = isSignUp ? "Email wajib diisi" : "Username atau email wajib diisi"
+    } else if (isSignUp && !validateEmail(formData.email)) {
       newErrors.email = "Mohon masukkan alamat email yang valid"
     }
 
@@ -158,7 +157,7 @@ export default function AuthPage() {
     // Validate individual field on blur
     const newErrors: FormErrors = {}
 
-    if (field === "email" && formData.email && !validateEmail(formData.email)) {
+    if (field === "email" && isSignUp && formData.email && !validateEmail(formData.email)) {
       newErrors.email = "Mohon masukkan alamat email yang valid"
     }
 
@@ -194,17 +193,26 @@ export default function AuthPage() {
 
     try {
       if (isSignUp) {
-        // Sign up with Firebase
-        await signUpWithEmail(formData.email, formData.password, formData.name)
+        // --- LOGIKA DAFTAR (REGISTER) ---
+        // Catatan: Kita belum buat API Register di Laravel, jadi ini akan error kalau dicoba.
+        // Nanti kita buat Controller Register-nya ya.
+        alert("Fitur Daftar belum tersedia di Backend Laravel. Silakan Login dulu pakai akun Admin.")
+        
       } else {
-        // Sign in with Firebase
-        await signInWithEmail(formData.email, formData.password)
+        // --- LOGIKA MASUK (LOGIN) KE LARAVEL ---
+        const { token, user } = await signInWithEmail(formData.email, formData.password)
+        
+        console.log("Login berhasil:", user)
+        
+        // Redirect ke Dashboard
+        router.push("/dashboard")
       }
 
-      // Redirect to dashboard on success
-      router.push("/dashboard")
-    } catch (error) {
-      setErrors({ general: error instanceof Error ? error.message : "Autentikasi gagal. Silakan coba lagi." })
+    } catch (error: any) {
+      // Tangkap Error dari Laravel
+      console.error("Login Error:", error)
+      const message = error.message || error.response?.data?.message || "Gagal menghubungi server Laravel"
+      setErrors({ general: message })
     } finally {
       setLoading(false)
     }
@@ -299,24 +307,24 @@ export default function AuthPage() {
               </div>
             )}
 
-            {/* Email Field */}
+            {/* Email/Username Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Email
+                {isSignUp ? "Email" : "Username atau Email"}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="Masukkan email Anda"
+                  type={isSignUp ? "email" : "text"}
+                  placeholder={isSignUp ? "Masukkan email Anda" : "Masukkan username atau email"}
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   onBlur={() => handleInputBlur("email")}
                   className={`pl-10 ${errors.email ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"}`}
                   required
                 />
-                {formData.email && validateEmail(formData.email) && (
+                {isSignUp && formData.email && validateEmail(formData.email) && (
                   <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500" />
                 )}
               </div>

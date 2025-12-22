@@ -20,9 +20,8 @@ import {
   RefreshCwIcon,
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { fetchDeviceStats, fetchDevicesWithSensors, type DeviceWithSensors, type DeviceStats } from "@/lib/data/FetchingData"
-import { fetchRecentAlerts, type LogEvent } from "@/lib/data/FetchingLogs"
-import { fetchWeatherStats } from "@/lib/data/FetchingData"
+import { fetchDeviceStats, fetchDevicesWithSensors, fetchWeatherStats, type DeviceWithSensors, type DeviceStats } from "@/lib/data/LaravelSensorData"
+import { fetchRecentAlerts, type LogEvent } from "@/lib/data/LaravelLogs"
 import { EmptyState } from "@/components/empty-state"
 import LoadingSpinner from "@/components/LoadingSpinner"
 
@@ -36,7 +35,7 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false)
 
   const loadDashboardData = async () => {
-    if (!user?.uid) {
+    if (!user?.id) {
       setLoading(false)
       return
     }
@@ -44,10 +43,10 @@ export default function DashboardPage() {
     try {
       // No need to set loading to true here as it's handled by the initial state and refresh handler
       const [devicesData, statsData, alertsData, weatherData] = await Promise.all([
-        fetchDevicesWithSensors(user.uid),
-        fetchDeviceStats(user.uid),
-        fetchRecentAlerts(user.uid, 5),
-        fetchWeatherStats(user.uid).catch(() => null), // Weather stats are optional
+        fetchDevicesWithSensors(String(user.id)),
+        fetchDeviceStats(String(user.id)),
+        fetchRecentAlerts(String(user.id), 5),
+        fetchWeatherStats(String(user.id)).catch(() => null), // Weather stats are optional
       ])
 
       setDevices(devicesData)
@@ -70,7 +69,7 @@ export default function DashboardPage() {
   useEffect(() => {
     setLoading(true)
     loadDashboardData()
-  }, [user?.uid])
+  }, [user?.id])
 
   const getTrendIcon = (trend: string, size = "h-4 w-4") => {
     switch (trend) {

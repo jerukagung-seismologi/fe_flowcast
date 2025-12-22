@@ -20,8 +20,8 @@ import {
   deleteDevice,
   generateDeviceToken,
   type Device,
-} from "@/lib/data/FetchingDevices"
-import { fetchDevicesWithSensors, type DeviceWithSensors } from "@/lib/data/FetchingData"
+} from "@/lib/data/LaravelDevices"
+import { fetchDevicesWithSensors, type DeviceWithSensors } from "@/lib/data/LaravelSensorData"
 import { useAuth } from "@/hooks/useAuth"
 import { EmptyState } from "@/components/empty-state"
 import { DeviceCard } from "@/components/device/DeviceCard"
@@ -48,11 +48,11 @@ export default function DevicesPage() {
   const isMobile = useIsMobile()
 
   const loadDevices = async () => {
-    if (!user?.uid) return
+    if (!user?.id) return
 
     try {
       setLoading(true)
-      const devicesData = await fetchDevicesWithSensors(user.uid)
+      const devicesData = await fetchDevicesWithSensors(String(user.id))
       setDevices(devicesData)
     } catch (error) {
       console.error("Error loading devices:", error)
@@ -68,7 +68,7 @@ export default function DevicesPage() {
 
   useEffect(() => {
     loadDevices()
-  }, [user?.uid])
+  }, [user?.id])
 
   const handleAddDevice = async (newDevice: Omit<Device, "id" | "authToken" | "registrationDate" | "userId">) => {
     if (!user?.uid) throw new Error("User not authenticated")
@@ -106,7 +106,7 @@ export default function DevicesPage() {
   }
 
   const handleEditDevice = async () => {
-    if (!editingDevice || !user?.uid) return
+    if (!editingDevice || !user?.id) return
 
     try {
       const { id, name, location, coordinates, threshold } = editingDevice
@@ -132,7 +132,7 @@ export default function DevicesPage() {
   }
 
   const handleDeleteDevice = async () => {
-    if (!deviceToDelete || !user?.uid) return
+    if (!deviceToDelete || !user?.id) return
 
     try {
       const success = await deleteDevice(deviceToDelete.id)
@@ -156,7 +156,7 @@ export default function DevicesPage() {
   }
 
   const handleGenerateToken = async (deviceId: string) => {
-    if (!user?.uid) return
+    if (!user?.id) return
 
     try {
       const tokenData = await generateDeviceToken(deviceId)

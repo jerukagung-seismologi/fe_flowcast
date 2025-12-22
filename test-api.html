@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Laravel API</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Test Laravel API Connection</h1>
+    <div>
+        <h2>Login Test</h2>
+        <input type="text" id="username" placeholder="Username" value="admin">
+        <input type="password" id="password" placeholder="Password" value="password">
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+        <h3>Result:</h3>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const output = document.getElementById('output');
+            
+            output.textContent = 'Sending request...';
+            
+            try {
+                const response = await axios.post('http://127.0.0.1:8000/api/login', {
+                    username: username,
+                    password: password
+                });
+                
+                output.textContent = JSON.stringify(response.data, null, 2);
+                console.log('Success:', response.data);
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message + '\n\n' + 
+                    JSON.stringify(error.response?.data || 'No response data', null, 2);
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
