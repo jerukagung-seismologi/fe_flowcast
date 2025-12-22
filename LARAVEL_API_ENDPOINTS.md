@@ -1,21 +1,21 @@
-# Laravel API Endpoints Documentation
+# Laravel API Endpoints (Controller Terbaru)
 
-Dokumentasi lengkap untuk API endpoints Laravel yang perlu dibuat untuk HydroMeteo Sense Dashboard.
+Base URL: gunakan env `NEXT_PUBLIC_API_URL` (default `http://127.0.0.1:8000/api`). Semua endpoint di bawah otomatis memakai header `Authorization: Bearer {token}` dari `auth_token` di localStorage.
 
-## 🔐 Authentication Endpoints
+## 🔐 Authentication
 
 ### POST `/api/login`
 
-**Login user**
+Login user.
 
 ```json
-Request:
+Request
 {
   "username": "admin",
   "password": "password"
 }
 
-Response:
+Response
 {
   "success": true,
   "message": "Login successful",
@@ -35,405 +35,42 @@ Response:
 }
 ```
 
-### POST `/api/logout`
+### POST `/api/register`
 
-**Logout user**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "message": "Logged out successfully"
-}
-```
-
-### POST `/api/register` (Optional)
-
-**Register new user**
+Register user baru (opsional jika pendaftaran ditutup).
 
 ```json
-Request:
+Request
 {
   "username": "newuser",
   "email": "user@example.com",
   "password": "password",
   "name": "New User"
 }
-
-Response:
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "access_token": "eyJ0eXAiOiJKV1...",
-    "token_type": "Bearer",
-    "user": { ... }
-  }
-}
 ```
 
----
+Response sama seperti login (mengembalikan `access_token` + `user`).
 
-## 📱 Devices Endpoints
+### POST `/api/logout`
 
-### GET `/api/devices`
-
-**Get all devices untuk user yang login**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "data": [
-    {
-      "id": "device001",
-      "name": "Stasiun Jakarta",
-      "location": "Jakarta Utara",
-      "coordinates": {
-        "lat": -6.138414,
-        "lng": 106.863956
-      },
-      "userId": "1",
-      "threshold": 2.5,
-      "authToken": "device_token_xxx",
-      "registrationDate": "2025-01-01T00:00:00.000000Z"
-    }
-  ]
-}
-```
-
-### GET `/api/devices/{deviceId}`
-
-**Get single device by ID**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "data": {
-    "id": "device001",
-    "name": "Stasiun Jakarta",
-    ...
-  }
-}
-```
-
-### POST `/api/devices`
-
-**Create new device**
+Logout user aktif. Wajib header Bearer.
 
 ```json
-Headers:
-  Authorization: Bearer {token}
-
-Request:
-{
-  "name": "Stasiun Baru",
-  "location": "Bandung",
-  "coordinates": {
-    "lat": -6.917464,
-    "lng": 107.619123
-  },
-  "threshold": 3.0
-}
-
-Response:
+Response
 {
   "success": true,
-  "message": "Device created successfully",
-  "data": {
-    "id": "device004",
-    "name": "Stasiun Baru",
-    ...
-  }
+  "message": "Logged out successfully"
 }
 ```
 
-### PUT `/api/devices/{deviceId}`
-
-**Update device**
-
-```json
-Headers:
-  Authorization: Bearer {token}
-
-Request:
-{
-  "name": "Updated Name",
-  "location": "Updated Location",
-  "threshold": 2.8
-}
-
-Response:
-{
-  "success": true,
-  "message": "Device updated successfully",
-  "data": { ... }
-}
-```
-
-### DELETE `/api/devices/{deviceId}`
-
-**Delete device**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "message": "Device deleted successfully"
-}
-```
-
-### POST `/api/devices/{deviceId}/token`
-
-**Generate auth token untuk device**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "data": {
-    "token": "HydroMeteo_abc123_1234567890",
-    "deviceId": "device001"
-  }
-}
-```
-
----
-
-## 📊 Sensor Data Endpoints
-
-### GET `/api/devices/sensors`
-
-**Get semua devices dengan data sensor terkini**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "data": [
-    {
-      "id": "device001",
-      "name": "Stasiun Jakarta",
-      "status": "online",
-      "lastUpdate": "2025-01-01T12:00:00.000000Z",
-      "batteryLevel": 85,
-      "waterLevel": {
-        "value": 2.3,
-        "trend": "up",
-        "change": 0.15
-      },
-      "rainfall": {
-        "value": 12.5,
-        "trend": "stable",
-        "change": 0.0
-      },
-      "temperature": {
-        "value": 28.5,
-        "trend": "down",
-        "change": -1.2
-      },
-      "humidity": {
-        "value": 75,
-        "trend": "up",
-        "change": 5
-      },
-      "windSpeed": {
-        "value": 15.3,
-        "trend": "stable",
-        "change": 0.5
-      },
-      "pressure": {
-        "value": 1012,
-        "trend": "up",
-        "change": 2
-      }
-    }
-  ]
-}
-```
-
-### GET `/api/devices/{deviceId}/sensors`
-
-**Get sensor data untuk device tertentu**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "data": {
-    "deviceId": "device001",
-    "timestamp": "2025-01-01T12:00:00.000000Z",
-    "waterLevel": 2.3,
-    "rainfall": 12.5,
-    "temperature": 28.5,
-    "humidity": 75,
-    "windSpeed": 15.3,
-    "pressure": 1012,
-    "batteryLevel": 85
-  }
-}
-```
-
-### GET `/api/devices/{deviceId}/sensors/history`
-
-**Get historical sensor data**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Query Parameters:
-  ?from=2025-01-01&to=2025-01-31&limit=100
-
-Response:
-{
-  "success": true,
-  "data": [
-    {
-      "timestamp": "2025-01-01T12:00:00.000000Z",
-      "waterLevel": 2.3,
-      "rainfall": 12.5,
-      ...
-    }
-  ]
-}
-```
-
----
-
-## 📋 Logs Endpoints
-
-### GET `/api/logs`
-
-**Get all logs untuk user**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Query Parameters (optional):
-  ?search=keyword
-  &type=info|warning|error|alert
-  &severity=low|medium|high|critical
-  &from=2025-01-01
-
-Response:
-{
-  "success": true,
-  "data": [
-    {
-      "id": "log001",
-      "deviceId": "device001",
-      "userId": "1",
-      "type": "warning",
-      "severity": "medium",
-      "message": "Water level approaching threshold",
-      "timestamp": "2025-01-01T12:00:00.000000Z",
-      "metadata": {
-        "waterLevel": 2.3,
-        "threshold": 2.5
-      }
-    }
-  ]
-}
-```
-
-### GET `/api/logs/alerts`
-
-**Get recent alerts**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Query Parameters:
-  ?limit=5
-
-Response:
-{
-  "success": true,
-  "data": [ ... ] // Array of log events
-}
-```
-
-### POST `/api/logs`
-
-**Create new log event**
-
-```json
-Headers:
-  Authorization: Bearer {token}
-
-Request:
-{
-  "deviceId": "device001",
-  "type": "warning",
-  "severity": "medium",
-  "message": "High rainfall detected",
-  "metadata": {
-    "rainfall": 45,
-    "duration": "1hr"
-  }
-}
-
-Response:
-{
-  "success": true,
-  "message": "Log created successfully",
-  "data": { ... }
-}
-```
-
-### DELETE `/api/logs/{logId}`
-
-**Delete log**
-
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
-{
-  "success": true,
-  "message": "Log deleted successfully"
-}
-```
-
----
-
-## 👤 User Profile Endpoints
+## 👤 User Profile
 
 ### GET `/api/user`
 
-**Get current user profile**
+Ambil profil user saat ini.
 
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
+```json
+Response
 {
   "success": true,
   "data": {
@@ -450,19 +87,16 @@ Response:
 
 ### PUT `/api/user/profile`
 
-**Update user profile**
+Update nama/email.
 
 ```json
-Headers:
-  Authorization: Bearer {token}
-
-Request:
+Request
 {
   "name": "Updated Name",
   "email": "newemail@example.com"
 }
 
-Response:
+Response
 {
   "success": true,
   "message": "Profile updated successfully",
@@ -472,118 +106,231 @@ Response:
 
 ### PUT `/api/user/password`
 
-**Update password**
+Ganti password.
 
 ```json
-Headers:
-  Authorization: Bearer {token}
-
-Request:
+Request
 {
   "current_password": "oldpassword",
   "new_password": "newpassword"
-}
-
-Response:
-{
-  "success": true,
-  "message": "Password updated successfully"
 }
 ```
 
 ### DELETE `/api/user`
 
-**Delete account**
+Hapus akun user.
 
-```
-Headers:
-  Authorization: Bearer {token}
-
-Response:
+```json
+Response
 {
   "success": true,
   "message": "Account deleted successfully"
 }
 ```
 
----
+## 📱 Devices
 
-## 📊 Charts/Analytics Endpoints (Optional)
+Semua endpoint memakai Bearer token. Backend sekarang memakai field dari tabel Laravel:
 
-### GET `/api/analytics/water-level`
+- `id_device`, `name`, `location`, `latitude`, `longitude`, `pengguna_id`, `setting.threshold`, `created_at`.
 
-**Get water level data untuk charts**
+### GET `/api/devices`
 
-```
-Headers:
-  Authorization: Bearer {token}
+List perangkat milik user.
 
-Query Parameters:
-  ?deviceId=device001 (optional, untuk specific device)
-  &period=7d|30d|90d
-
-Response:
+```json
+Response
 {
   "success": true,
   "data": [
     {
-      "date": "2025-01-01",
-      "value": 2.3,
-      "deviceName": "Stasiun Jakarta"
+      "id_device": 1,
+      "name": "Stasiun Jakarta",
+      "location": "Jakarta Utara",
+      "latitude": "-6.138414",
+      "longitude": "106.863956",
+      "pengguna_id": 1,
+      "setting": { "threshold": "2.5" },
+      "created_at": "2025-01-01T00:00:00.000000Z"
     }
   ]
 }
 ```
 
-### GET `/api/analytics/rainfall`
+### POST `/api/devices`
 
-**Get rainfall data**
+Buat perangkat baru.
 
+```json
+Request
+{
+  "name": "Stasiun Baru",
+  "location": "Bandung",
+  "latitude": -6.917464,
+  "longitude": 107.619123,
+  "threshold": 3.0
+}
+
+Response
+{
+  "success": true,
+  "message": "Device created successfully",
+  "data": {
+    "id_device": 4,
+    "name": "Stasiun Baru",
+    "location": "Bandung",
+    "latitude": "-6.917464",
+    "longitude": "107.619123",
+    "pengguna_id": 1,
+    "setting": { "threshold": "3.0" },
+    "created_at": "2025-01-01T00:00:00.000000Z"
+  }
+}
 ```
-Similar to water-level endpoint
+
+### PUT `/api/devices/{id_device}`
+
+Update perangkat.
+
+```json
+Request
+{
+  "name": "Updated Name",
+  "location": "Updated Location",
+  "latitude": -6.9,
+  "longitude": 107.6,
+  "threshold": 2.8
+}
+
+Response
+{
+  "success": true,
+  "message": "Device updated successfully",
+  "data": { ... }
+}
 ```
 
----
+### DELETE `/api/devices/{id_device}`
 
-## 🔒 Security Notes
+Hapus perangkat.
 
-1. **Authentication**: Semua endpoint (kecuali `/login` dan `/register`) harus menggunakan Bearer Token
-2. **Authorization**: User hanya bisa akses data miliknya sendiri (checked via `userId`)
-3. **Validation**: Validasi semua input di backend
-4. **Rate Limiting**: Implement rate limiting untuk mencegah abuse
-5. **CORS**: Configure CORS untuk allow Next.js domain
+```json
+Response
+{
+  "success": true,
+  "message": "Device deleted successfully"
+}
+```
 
----
+> Catatan: endpoint `/devices/{id}/token` tidak dipakai di controller terbaru/frontend.
 
-## 📦 Laravel Implementation Example
+## 🌊 Dashboard (Device + Sensor Terkini)
+
+### GET `/api/dashboard`
+
+Mengembalikan daftar perangkat beserta `latest_data` sensor. Frontend menilai status online jika `latest_data.created_at` < 60 menit dari sekarang.
+
+```json
+Response
+{
+  "success": true,
+  "data": [
+    {
+      "id_device": 1,
+      "name": "Stasiun Jakarta",
+      "location": "Jakarta Utara",
+      "updated_at": "2025-01-01T12:05:00.000000Z",
+      "setting": { "threshold": "2.5" },
+      "latest_data": {
+        "water_level": "2.3",
+        "rainrate": "12.5",
+        "temp": "28.5",
+        "humid": "75",
+        "pressure": "1012",
+        "created_at": "2025-01-01T12:00:00.000000Z"
+      }
+    }
+  ]
+}
+```
+
+## 📋 Logs & Alerts
+
+### GET `/api/logs`
+
+Ambil log. Gunakan query untuk filter/alert terbaru.
+
+Query yang dipakai frontend: `type=alert`, `limit`, `search` (opsional).
+
+```json
+Response
+{
+  "success": true,
+  "data": [
+    {
+      "id": 10,
+      "device_id": 1,
+      "user_id": 1,
+      "type": "warning",
+      "severity": "medium",
+      "message": "Water level approaching threshold",
+      "metadata": { "waterLevel": 2.3, "threshold": 2.5 },
+      "created_at": "2025-01-01T12:00:00.000000Z"
+    }
+  ]
+}
+```
+
+### Contoh recent alerts
+
+`GET /api/logs?type=alert&limit=5`
+
+> Endpoint `/logs/alerts` sudah digabung ke query `type=alert` pada `/logs`.
+
+### (Jika route resource diaktifkan) POST `/api/logs`
+
+Payload contoh:
+
+```json
+{
+  "device_id": 1,
+  "type": "warning",
+  "severity": "medium",
+  "message": "High rainfall detected",
+  "metadata": { "rainfall": 45, "duration": "1h" }
+}
+```
+
+### DELETE `/api/logs/{id}`
+
+Menghapus log (opsional sesuai kebutuhan backend).
+
+## 🔒 Catatan Keamanan
+
+- Semua endpoint selain `/login` dan `/register` wajib Bearer token.
+- Pastikan user hanya mengakses data miliknya (gunakan `pengguna_id` atau policy).
+- Validasi input dan aktifkan CORS untuk domain Next.js.
+- Rate limiting disarankan untuk mencegah abuse.
+
+## 🚀 Implementasi singkat (routes/api.php)
 
 ```php
-// routes/api.php
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
     Route::get('/user', [UserController::class, 'profile']);
-
-    Route::apiResource('devices', DeviceController::class);
-    Route::post('/devices/{device}/token', [DeviceController::class, 'generateToken']);
-    Route::get('/devices/sensors', [DeviceController::class, 'sensorsData']);
-
-    Route::apiResource('logs', LogController::class);
-    Route::get('/logs/alerts', [LogController::class, 'alerts']);
-
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
     Route::put('/user/password', [UserController::class, 'updatePassword']);
     Route::delete('/user', [UserController::class, 'deleteAccount']);
+
+    Route::apiResource('devices', DeviceController::class);
+    Route::get('/dashboard', [DeviceController::class, 'dashboard']);
+
+    Route::get('/logs', [LogController::class, 'index']);
+    Route::post('/logs', [LogController::class, 'store']); // optional
+    Route::delete('/logs/{log}', [LogController::class, 'destroy']); // optional
 });
 ```
-
-## 🚀 Next Steps
-
-1. Buat migrations untuk tables: `devices`, `logs`, `sensor_data`
-2. Buat Models: `Device`, `Log`, `SensorData`
-3. Buat Controllers sesuai endpoints di atas
-4. Setup authentication (Laravel Sanctum atau JWT)
-5. Test dengan Postman/Insomnia
-6. Update `useMockData = false` di Next.js services
