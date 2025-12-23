@@ -13,7 +13,7 @@ import {
   setDoc,
   Timestamp,
 } from "firebase/firestore"
-import { db } from "@/lib/FirebaseConfig"
+import { db } from "@/lib/ApiConfig"
 import { addLogEvent, LogEvent } from "@/lib/data/FetchingLogs"
 
 export interface Device {

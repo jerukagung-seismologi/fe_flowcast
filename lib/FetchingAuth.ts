@@ -1,5 +1,5 @@
 import axios from "axios"
-import { API_BASE_URL } from "./FirebaseConfig"
+import { API_BASE_URL } from "@/lib/ApiConfig"
 
 export interface UserProfile {
   id: number

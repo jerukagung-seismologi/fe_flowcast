@@ -157,7 +157,7 @@ export default function LandingPage() {
               <div className="p-2 bg-blue-600 rounded-lg">
                 <CloudRain className="h-6 w-6 text-white" />
               </div>
-              <span className="ml-3 text-xl font-bold text-gray-900">HydroMeteo Sense</span>
+              <span className="ml-3 text-xl font-bold text-gray-900">FlowCast</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/login">
@@ -178,10 +178,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Pemantauan Sumber Daya Air dan Cuaca
+              Pemantauan Sumber Daya Air dan Banjir
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto">
-              Menyediakan analisis tren data untuk pemantauan hidrometeorologi.
+              Menyediakan analisis tren data untuk pemantauan hidrometeorologi dan banjir.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/login">

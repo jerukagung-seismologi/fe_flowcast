@@ -1,6 +1,6 @@
 import { fetchDevices, fetchDevice, type Device } from "./FetchingDevices"
 import { fetchRecentAlerts } from "./FetchingLogs"
-import { rtdb } from "@/lib/FirebaseConfig"
+import { rtdb } from "@/lib/ApiConfig"
 import { get, ref, query, orderByChild, limitToLast } from "firebase/database"
 
 export interface SensorData {

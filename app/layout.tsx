@@ -1,38 +1,38 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
+import "@/styles/globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "HydroMeteo Sense",
+  title: "FlowCast",
   description: "Platform hidrometeorologi cerdas dengan analisis data cuaca dan hidrologi",
   keywords: [
     "hidrometeorologi",
     "cuaca",
     "hidrologi",
     "analisis data",
-    "HydroMeteo Sense",
+    "FlowCast",
     "prediksi cuaca",
     "platform cerdas",
   ],
-  authors: [{ name: "HydroMeteo Team", url: "https://hydrometeo-sense.com" }],
+  authors: [{ name: "FlowCast Team", url: "https://flowcast.com" }],
   themeColor: "#10b981",
   icons: {
-    icon: "https://img.icons8.com/color/240/heavy-rain.png",
+    icon: "/favicon.ico",
   },
   openGraph: {
-    title: "HydroMeteo Sense",
+    title: "FlowCast",
     description: "Platform hidrometeorologi cerdas dengan analisis data cuaca dan hidrologi",
-    url: "https://hydrometeo-sense.com",
-    siteName: "HydroMeteo Sense",
+    url: "https://flowcast.com",
+    siteName: "FlowCast",
     images: [
       {
-        url: "https://img.icons8.com/color/240/heavy-rain.png",
+        url: "/favicon.ico",
         width: 240,
         height: 240,
-        alt: "HydroMeteo Sense Logo",
+        alt: "FlowCast Logo",
       },
     ],
     locale: "id_ID",
