@@ -1,5 +1,5 @@
 // Laravel API Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.flowcast.jeris.web.id"
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 // Log configuration for debugging
 if (typeof window !== 'undefined') {
