@@ -119,6 +119,25 @@ export default function ChartsPage() {
     loadChartsData()
   }, [user?.id, selectedDevice])
 
+  const getVariableIcon = (parameter: string) => {
+    if (parameter.toLowerCase().includes("air")) {
+      return <DropletIcon className="h-4 w-4 text-blue-600" />
+    }
+    if (parameter.toLowerCase().includes("hujan")) {
+      return <CloudRainIcon className="h-4 w-4 text-green-600" />
+    }
+    if (parameter.toLowerCase().includes("suhu")) {
+      return <ThermometerIcon className="h-4 w-4 text-red-600" />
+    }
+    if (parameter.toLowerCase().includes("kelembapan")) {
+      return <GaugeIcon className="h-4 w-4 text-cyan-600" />
+    }
+    if (parameter.toLowerCase().includes("tekanan")) {
+      return <WindIcon className="h-4 w-4 text-gray-600" />
+    }
+    return <GaugeIcon className="h-4 w-4 text-gray-600" />
+  }
+
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case "up":
@@ -202,7 +221,7 @@ export default function ChartsPage() {
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-800">{trend.parameter}</CardTitle>
-              {getTrendIcon(trend.trend)}
+              {getVariableIcon(trend.parameter)}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-900">
