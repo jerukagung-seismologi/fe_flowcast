@@ -27,6 +27,12 @@ export interface DeviceWithSensors {
   humidity: SensorData
   windSpeed: SensorData
   pressure: SensorData
+  // ADDED: registrationDate and coordinates to match DeviceCard usage
+  registrationDate: string
+  coordinates: {
+    lat: number
+    lng: number
+  }
 }
 
 export interface DeviceStats {
@@ -74,7 +80,7 @@ export async function fetchDevicesWithSensors(userId: string): Promise<DeviceWit
       const isOnline = (new Date().getTime() - lastUpdate.getTime()) < (60 * 60 * 1000); 
 
       return {
-        id: item.id_device, // Mapping ID
+        id: String(item.id_device), // Mapping ID and ensure it's a string
         name: item.name,
         location: item.location,
         status: isOnline ? "online" : "offline",
@@ -82,6 +88,13 @@ export async function fetchDevicesWithSensors(userId: string): Promise<DeviceWit
         batteryLevel: 100, // Hardcode 100 jika belum ada sensor baterai
         threshold: parseFloat(setting.threshold) || 100,
         
+        // ADDED: registrationDate and coordinates
+        registrationDate: item.created_at || new Date().toISOString(),
+        coordinates: {
+          lat: parseFloat(item.latitude) || 0,
+          lng: parseFloat(item.longitude) || 0,
+        },
+
         // Data Sensor
         waterLevel: { value: parseFloat(data.water_level) || 0, trend: "stable", change: 0 },
         rainfall: { value: parseFloat(data.rainrate) || 0, trend: "stable", change: 0 },

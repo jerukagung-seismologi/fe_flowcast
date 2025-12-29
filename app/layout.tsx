@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "prediksi cuaca",
     "platform cerdas",
   ],
-  authors: [{ name: "FlowCast Team", url: "https://flowcast.com" }],
+  authors: [{ name: "FlowCast Team", url: "https://flowcast.jeris.web.id" }],
   themeColor: "#10b981",
   icons: {
     icon: "/favicon.ico",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FlowCast",
     description: "Platform hidrometeorologi cerdas dengan analisis data cuaca dan hidrologi",
-    url: "https://flowcast.com",
+    url: "https://flowcast.jeris.web.id",
     siteName: "FlowCast",
     images: [
       {

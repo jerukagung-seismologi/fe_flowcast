@@ -13,11 +13,12 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
-import { type DeviceWithSensors } from "@/lib/data/FetchingData"
+import { DeviceWithSensors } from "@/lib/data/LaravelSensorData" // Use DeviceWithSensors
+import { Device } from "@/lib/data/LaravelDevices"
 
 interface DeviceCardProps {
-  device: DeviceWithSensors
-  onEdit: (device: DeviceWithSensors) => void
+  device: DeviceWithSensors // Changed to DeviceWithSensors
+  onEdit: (device: Device) => void
   onDelete: (device: { id: string; name: string }) => void
   onGenerateToken: (id: string) => void
 }
@@ -34,6 +35,20 @@ const getTrendIcon = (trend: string) => {
 }
 
 export function DeviceCard({ device, onEdit, onDelete, onGenerateToken }: DeviceCardProps) {
+  // Helper to convert DeviceWithSensors to Device for editing
+  const handleEdit = () => {
+    const deviceForEdit: Device = {
+      id: String(device.id),
+      name: device.name,
+      location: device.location,
+      registrationDate: device.registrationDate,
+      coordinates: device.coordinates,
+      userId: "", // userId is not available in DeviceWithSensors, handle accordingly
+      threshold: device.threshold,
+    }
+    onEdit(deviceForEdit)
+  }
+
   return (
     <Card
       key={device.id}
@@ -118,7 +133,7 @@ export function DeviceCard({ device, onEdit, onDelete, onGenerateToken }: Device
             variant="outline"
             size="sm"
             className="flex-1 bg-blue-50 hover:bg-blue-100 border-blue-200"
-            onClick={() => onEdit(device)}
+            onClick={handleEdit}
           >
             <Edit className="h-3 w-3 mr-1 text-blue-600" />
             Edit
@@ -127,7 +142,7 @@ export function DeviceCard({ device, onEdit, onDelete, onGenerateToken }: Device
             variant="outline"
             size="sm"
             className="flex-1 bg-green-50 hover:bg-green-100 border-green-200"
-            onClick={() => onGenerateToken(device.id)}
+            onClick={() => onGenerateToken(String(device.id))}
           >
             <Key className="h-3 w-3 mr-1 text-green-600" />
             Token
@@ -136,7 +151,7 @@ export function DeviceCard({ device, onEdit, onDelete, onGenerateToken }: Device
             variant="outline"
             size="sm"
             className="bg-red-50 hover:bg-red-100 border-red-200"
-            onClick={() => onDelete({ id: device.id, name: device.name })}
+            onClick={() => onDelete({ id: String(device.id), name: device.name })}
           >
             <Trash2 className="h-3 w-3 mr-1 text-red-600" />
           </Button>
