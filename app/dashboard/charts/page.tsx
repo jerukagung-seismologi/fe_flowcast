@@ -160,6 +160,57 @@ export default function ChartsPage() {
     }
   }
 
+  const getVariableColors = (parameter: string): { card: string; title: string; value: string } => {
+    const param = parameter.toLowerCase()
+    if (param.includes("air")) {
+      return {
+        card: "bg-gradient-to-br from-blue-50 to-cyan-50 border-l-blue-500",
+        title: "text-blue-800",
+        value: "text-blue-900",
+      }
+    }
+    if (param.includes("hujan")) {
+      return {
+        card: "bg-gradient-to-br from-green-50 to-emerald-50 border-l-green-500",
+        title: "text-green-800",
+        value: "text-green-900",
+      }
+    }
+    if (param.includes("suhu")) {
+      return {
+        card: "bg-gradient-to-br from-red-50 to-orange-50 border-l-red-500",
+        title: "text-red-800",
+        value: "text-red-900",
+      }
+    }
+    if (param.includes("kelembapan")) {
+      return {
+        card: "bg-gradient-to-br from-cyan-50 to-sky-50 border-l-cyan-500",
+        title: "text-cyan-800",
+        value: "text-cyan-900",
+      }
+    }
+    if (param.includes("tekanan")) {
+      return {
+        card: "bg-gradient-to-br from-gray-50 to-slate-50 border-l-gray-500",
+        title: "text-gray-800",
+        value: "text-gray-900",
+      }
+    }
+    if (param.includes("wind")) {
+      return {
+        card: "bg-gradient-to-br from-indigo-50 to-violet-50 border-l-indigo-500",
+        title: "text-indigo-800",
+        value: "text-indigo-900",
+      }
+    }
+    return {
+      card: "bg-gradient-to-br from-gray-50 to-slate-50 border-l-gray-500",
+      title: "text-gray-800",
+      value: "text-gray-900",
+    }
+  }
+
   if (loading) {
     return <LoadingSpinner />
   }
@@ -213,28 +264,33 @@ export default function ChartsPage() {
       </div>
 
       {/* Weather Trends Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {weatherTrends.map((trend, index) => (
-          <Card
-            key={trend.parameter}
-            className="bg-gradient-to-br from-blue-50 to-cyan-50 border-l-4 border-l-blue-500"
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">{trend.parameter}</CardTitle>
-              {getVariableIcon(trend.parameter)}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-900">
-                {trend.current} {trend.unit}
-              </div>
-              <div className={`text-xs flex items-center ${getTrendColor(trend.trend)}`}>
-                {trend.change > 0 ? "+" : ""}
-                {trend.change} {trend.unit} dari jam terakhir
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {weatherTrends.map((trend) => {
+          const colors = getVariableColors(trend.parameter)
+          return (
+            <Card
+              key={trend.parameter}
+              className={`border-l-4 ${colors.card}`}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className={`text-sm font-medium ${colors.title}`}>{trend.parameter}</CardTitle>
+                {getVariableIcon(trend.parameter)}
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${colors.value}`}>
+                  {trend.current} {trend.unit}
+                </div>
+                <div className={`text-xs flex items-center ${getTrendColor(trend.trend)}`}>
+                  {getTrendIcon(trend.trend)}
+                  <span className="ml-1">
+                    {trend.change} {trend.unit} dari jam terakhir
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div> */}
 
       {/* Water Level Chart */}
       {waterLevelData && (
@@ -249,12 +305,24 @@ export default function ChartsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={waterLevelData.current}>
+                <LineChart
+                  data={waterLevelData.current.map((d) => ({ ...d, timestamp: new Date(d.timestamp).getTime() }))}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
-                  <YAxis />
+                  <XAxis
+                    dataKey="timestamp"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleTimeString()}
+                    scale="time"
+                  />
+                  <YAxis
+                    domain={["dataMin - 0.2", "dataMax + 0.2"]}
+                    tickFormatter={(value) => value.toFixed(2)}
+                  />
                   <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    labelFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
                     formatter={(value: number) => [`${value.toFixed(2)}m`, "Tinggi Air"]}
                   />
                   <Legend />
@@ -279,12 +347,24 @@ export default function ChartsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={rainfallData.hourly}>
+                <AreaChart
+                  data={rainfallData.hourly.map((d) => ({ ...d, timestamp: new Date(d.timestamp).getTime() }))}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
-                  <YAxis />
+                  <XAxis
+                    dataKey="timestamp"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleTimeString()}
+                    scale="time"
+                  />
+                  <YAxis
+                    domain={[0, "dataMax + 5"]}
+                    tickFormatter={(value) => value.toFixed(1)}
+                  />
                   <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    labelFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
                     formatter={(value: number) => [`${value.toFixed(1)}mm`, "Curah Hujan"]}
                   />
                   <Legend />
@@ -316,16 +396,41 @@ export default function ChartsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={temperatureData.current}>
+                <LineChart
+                  data={temperatureData.current.map((d) => ({ ...d, timestamp: new Date(d.timestamp).getTime() }))}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
-                  <YAxis />
+                  <XAxis
+                    dataKey="timestamp"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleTimeString()}
+                    scale="time"
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    orientation="left"
+                    domain={["dataMin - 2", "dataMax + 2"]}
+                    unit="°C"
+                    tickFormatter={(value) => value.toFixed(1)}
+                    stroke="#dc2626"
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    domain={["dataMin - 2", "dataMax + 2"]}
+                    unit="°C"
+                    tickFormatter={(value) => value.toFixed(1)}
+                    stroke="#2563eb"
+                  />
                   <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    labelFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
                     formatter={(value: number, name: string) => [`${value.toFixed(1)}°C`, name]}
                   />
                   <Legend />
                   <Line
+                    yAxisId="left"
                     type="monotone"
                     dataKey="temperature"
                     stroke="#dc2626"
@@ -333,6 +438,7 @@ export default function ChartsPage() {
                     name="Suhu"
                   />
                   <Line
+                    yAxisId="right"
                     type="monotone"
                     dataKey="dewpoint"
                     stroke="#2563eb"
@@ -359,12 +465,25 @@ export default function ChartsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={humidityData.current}>
+                <AreaChart
+                  data={humidityData.current.map((d) => ({ ...d, timestamp: new Date(d.timestamp).getTime() }))}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
-                  <YAxis unit="%" />
+                  <XAxis
+                    dataKey="timestamp"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleTimeString()}
+                    scale="time"
+                  />
+                  <YAxis
+                    domain={["dataMin - 10", "dataMax + 10"]}
+                    unit="%"
+                    tickFormatter={(value) => String(Math.round(value))}
+                  />
                   <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    labelFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
                     formatter={(value: number) => [`${value.toFixed(1)}%`, "Kelembapan"]}
                   />
                   <Legend />
@@ -396,12 +515,25 @@ export default function ChartsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={pressureData.current}>
+                <LineChart
+                  data={pressureData.current.map((d) => ({ ...d, timestamp: new Date(d.timestamp).getTime() }))}
+                  margin={{ top: 5, right: 20, left: 15, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
-                  <YAxis domain={["dataMin - 2", "dataMax + 2"]} unit=" hPa" />
+                  <XAxis
+                    dataKey="timestamp"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleTimeString()}
+                    scale="time"
+                  />
+                  <YAxis
+                    domain={["dataMin - 2", "dataMax + 2"]}
+                    unit=" hPa"
+                    tickFormatter={(value) => String(Math.round(value))}
+                  />
                   <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    labelFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
                     formatter={(value: number) => [`${value.toFixed(1)} hPa`, "Tekanan"]}
                   />
                   <Legend />
@@ -493,65 +625,80 @@ export default function ChartsPage() {
         </div>
       )} */}
 
-      {/* Historical Data Analysis */}
-      {waterLevelData && (
+      {/* Combined Historical and Prediction Chart */}
+      {waterLevelData && waterLevelData.historical && waterLevelData.prediction && (
         <Card className="shadow-lg border-l-4 border-l-indigo-500">
           <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
             <CardTitle className="flex items-center text-indigo-800">
               <EyeIcon className="h-5 w-5 mr-2 text-indigo-600" />
-              Analisis Historis
+              Analisis & Prediksi Historis
             </CardTitle>
-            <CardDescription className="text-indigo-600">Tren mingguan</CardDescription>
+            <CardDescription className="text-indigo-600">
+              Tren historis (garis solid) dan prediksi (garis putus-putus)
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={waterLevelData.historical}>
+                <LineChart
+                  data={[
+                    // Map historical data
+                    ...waterLevelData.historical.map((d) => ({
+                      timestamp: new Date(d.timestamp).getTime(),
+                      historical: d.value,
+                    })),
+                    // Bridge the gap and map prediction data
+                    ...[
+                      // Start prediction line from last historical point
+                      {
+                        timestamp: new Date(waterLevelData.historical[waterLevelData.historical.length - 1].timestamp).getTime(),
+                        prediction: waterLevelData.historical[waterLevelData.historical.length - 1].value,
+                      },
+                      // The rest of the prediction points
+                      ...waterLevelData.prediction.map((d) => ({
+                        timestamp: new Date(d.timestamp).getTime(),
+                        prediction: d.value,
+                      })),
+                    ],
+                  ]}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleDateString()} />
-                  <YAxis />
-                  <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleString()}
-                    formatter={(value: number) => [`${value.toFixed(2)}m`, "Tinggi Air"]}
+                  <XAxis
+                    dataKey="timestamp"
+                    tickFormatter={(unixTime) => new Date(unixTime).toLocaleDateString()}
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    scale="time"
                   />
-                  <Legend />
-                  <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={2} name="Data Historis" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Prediction Chart */}
-      {waterLevelData && (
-        <Card className="shadow-lg border-l-4 border-l-yellow-500">
-          <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
-            <CardTitle className="flex items-center text-yellow-800">
-              <TrendingUpIcon className="h-5 w-5 mr-2 text-yellow-600" />
-              Prediksi
-            </CardTitle>
-            <CardDescription className="text-yellow-600">Data prakiraan</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={waterLevelData.prediction}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
-                  <YAxis />
+                  <YAxis
+                    domain={["dataMin - 0.5", "dataMax + 0.5"]}
+                    tickFormatter={(value) => value.toFixed(2)}
+                  />
                   <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleString()}
-                    formatter={(value: number) => [`${value.toFixed(2)}m`, "Level Prediksi"]}
+                    labelFormatter={(unixTime) => new Date(unixTime).toLocaleString()}
+                    formatter={(value: number, name: string) => {
+                      const formattedName = name === "historical" ? "Tinggi Air (Historis)" : "Tinggi Air (Prediksi)"
+                      return [`${value.toFixed(2)}m`, formattedName]
+                    }}
                   />
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="value"
+                    dataKey="historical"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    name="Historis"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="prediction"
                     stroke="#f59e0b"
                     strokeWidth={2}
                     strokeDasharray="5 5"
                     name="Prediksi"
+                    dot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
