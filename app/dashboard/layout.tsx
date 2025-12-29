@@ -3,13 +3,15 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LayoutDashboard, Settings, FileText, BarChart3, User } from "lucide-react"
+import { Inter } from "next/font/google"
+import { LayoutDashboard, Network, FileText, Database, Earth, ChartNoAxesCombined, User, CloudRain } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { signOutUser } from "@/lib/FetchingAuth"
-import { MobileSidebar } from "@/components/dashboard/MobileSidebar"
-import { DesktopSidebar } from "@/components/dashboard/DesktopSidebar"
+import { Sidebar } from "@/components/dashboard/Sidebar"
 import { Topbar } from "@/components/dashboard/Topbar"
-import type { NavigationItem } from "@/components/dashboard/types"
+import type { NavigationItem } from "@/components/dashboard/navigation"
+import Loading from "@/app/loading"
+const inter = Inter({ subsets: ["latin"] });
 
 export default function DashboardLayout({
   children,
@@ -36,14 +38,7 @@ export default function DashboardLayout({
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuat...</p>
-        </div>
-      </div>
-    )
+    return <Loading/>
   }
 
   if (!user) {
@@ -52,25 +47,44 @@ export default function DashboardLayout({
 
   const navigation: NavigationItem[] = [
     { name: "Beranda", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Perangkat", href: "/dashboard/devices", icon: Settings },
-    { name: "Grafik", href: "/dashboard/charts", icon: BarChart3 },
-    { name: "Log", href: "/dashboard/logs", icon: FileText },
-    { name: "Profil", href: "/dashboard/profile", icon: User },
+    { name: "Perangkat", href: "/dashboard/devices", icon: Network },
+    { name: "Peta", href: "/dashboard/peta", icon: Earth },
+    { name: "Grafik", href: "/dashboard/charts", icon: ChartNoAxesCombined },
+    { name: "Data", href: "/dashboard/data", icon: Database },
+    { name: "Laporan", href: "/dashboard/laporan", icon: FileText },
+    { name: "Profil", href: "/dashboard/profil", icon: User },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <MobileSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} navigation={navigation} />
-      <DesktopSidebar navigation={navigation} />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+      {/* Topbar now spans full width */}
+      <Topbar 
+        user={user} 
+        profile={profile} 
+        setSidebarOpen={setSidebarOpen} 
+        handleLogout={handleLogout}
+        navigation={navigation} // Pass navigation to Topbar
+      />
 
-      {/* Main content */}
-      <div className="lg:pl-64">
-        <Topbar user={user} profile={profile} setSidebarOpen={setSidebarOpen} handleLogout={handleLogout} />
+      {/* Content area with sidebar and main content */}
+      <div className="flex h-[calc(100vh-4rem)]">
+        {/* Sidebar - fixed position on desktop */}
+        <div className={`lg:block ${sidebarOpen ? "block" : "hidden"} lg:w-64 flex-shrink-0`}>
+          <div className="lg:h-[calc(100vh-4rem)] overflow-hidden">
+            <Sidebar 
+              navigation={navigation}
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+            />
+          </div>
+        </div>
 
-        {/* Page content */}
-        <main className="py-6">
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
-        </main>
+        {/* Main content - scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <main className="py-6">
+            <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+          </main>
+        </div>
       </div>
     </div>
   )

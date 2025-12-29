@@ -30,6 +30,7 @@ import {
   GaugeIcon,
   EyeIcon,
   RefreshCwIcon,
+  WindIcon, // Assuming WindIcon for pressure or humidity
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import {
@@ -37,10 +38,16 @@ import {
   fetchRainfallData,
   fetchComparisonData,
   fetchWeatherTrends,
+  fetchTemperatureData, // Import new fetcher
+  fetchHumidityData, // Import new fetcher
+  fetchPressureData, // Import new fetcher
   type WaterLevelData,
   type RainfallData,
   type ComparisonData,
   type WeatherTrend,
+  type TemperatureData, // Import new type
+  type HumidityData, // Import new type
+  type PressureData, // Import new type
 } from "@/lib/data/charts"
 import { fetchDevices, type Device } from "@/lib/data/LaravelDevices"
 import { EmptyState } from "@/components/empty-state"
@@ -56,6 +63,9 @@ export default function ChartsPage() {
   const [rainfallData, setRainfallData] = useState<RainfallData | null>(null)
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
   const [weatherTrends, setWeatherTrends] = useState<WeatherTrend[]>([])
+  const [temperatureData, setTemperatureData] = useState<TemperatureData | null>(null)
+  const [humidityData, setHumidityData] = useState<HumidityData | null>(null)
+  const [pressureData, setPressureData] = useState<PressureData | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -64,12 +74,24 @@ export default function ChartsPage() {
 
     try {
       setLoading(true)
-      const [devicesData, waterData, rainData, compData, trendsData] = await Promise.all([
+      const [
+        devicesData,
+        waterData,
+        rainData,
+        compData,
+        trendsData,
+        tempData,
+        humData,
+        pressData,
+      ] = await Promise.all([
         fetchDevices(String(user.id)),
         fetchWaterLevelData(String(user.id), selectedDevice !== "all" ? selectedDevice : undefined),
         fetchRainfallData(String(user.id), selectedDevice !== "all" ? selectedDevice : undefined),
         fetchComparisonData(String(user.id)),
         fetchWeatherTrends(String(user.id)),
+        fetchTemperatureData(String(user.id), selectedDevice !== "all" ? selectedDevice : undefined),
+        fetchHumidityData(String(user.id), selectedDevice !== "all" ? selectedDevice : undefined),
+        fetchPressureData(String(user.id), selectedDevice !== "all" ? selectedDevice : undefined),
       ])
 
       setDevices(devicesData)
@@ -77,6 +99,9 @@ export default function ChartsPage() {
       setRainfallData(rainData)
       setComparisonData(compData)
       setWeatherTrends(trendsData)
+      setTemperatureData(tempData)
+      setHumidityData(humData)
+      setPressureData(pressData)
     } catch (error) {
       console.error("Error loading charts data:", error)
     } finally {
@@ -92,7 +117,7 @@ export default function ChartsPage() {
 
   useEffect(() => {
     loadChartsData()
-  }, [user?.uid, selectedDevice])
+  }, [user?.id, selectedDevice])
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
@@ -259,8 +284,124 @@ export default function ChartsPage() {
         </Card>
       )}
 
+      {/* Temperature and Dew Point Chart */}
+      {temperatureData && (
+        <Card className="shadow-lg border-l-4 border-l-red-500">
+          <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50">
+            <CardTitle className="flex items-center text-red-800">
+              <ThermometerIcon className="h-5 w-5 mr-2 text-red-600" />
+              Tren Suhu & Titik Embun
+            </CardTitle>
+            <CardDescription className="text-red-600">Monitoring suhu dan titik embun</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={temperatureData.current}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number, name: string) => [`${value.toFixed(1)}°C`, name]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="temperature"
+                    stroke="#dc2626"
+                    strokeWidth={2}
+                    name="Suhu"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="dewpoint"
+                    stroke="#2563eb"
+                    strokeWidth={2}
+                    name="Titik Embun"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Humidity Chart */}
+      {humidityData && (
+        <Card className="shadow-lg border-l-4 border-l-cyan-500">
+          <CardHeader className="bg-gradient-to-r from-cyan-50 to-sky-50">
+            <CardTitle className="flex items-center text-cyan-800">
+              <GaugeIcon className="h-5 w-5 mr-2 text-cyan-600" />
+              Kelembapan Udara
+            </CardTitle>
+            <CardDescription className="text-cyan-600">Data kelembapan relatif</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={humidityData.current}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
+                  <YAxis unit="%" />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number) => [`${value.toFixed(1)}%`, "Kelembapan"]}
+                  />
+                  <Legend />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#0891b2"
+                    fill="#0891b2"
+                    fillOpacity={0.3}
+                    name="Kelembapan"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pressure Chart */}
+      {pressureData && (
+        <Card className="shadow-lg border-l-4 border-l-gray-500">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
+            <CardTitle className="flex items-center text-gray-800">
+              <WindIcon className="h-5 w-5 mr-2 text-gray-600" />
+              Tekanan Udara
+            </CardTitle>
+            <CardDescription className="text-gray-600">Data tekanan atmosfer</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={pressureData.current}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} />
+                  <YAxis domain={["dataMin - 2", "dataMax + 2"]} unit=" hPa" />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number) => [`${value.toFixed(1)} hPa`, "Tekanan"]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#475569"
+                    strokeWidth={2}
+                    name="Tekanan Udara"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Device Comparison */}
-      {comparisonData && comparisonData.devices.length > 0 && (
+      {/* {comparisonData && comparisonData.devices.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="shadow-lg border-l-4 border-l-purple-500">
             <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
@@ -331,7 +472,7 @@ export default function ChartsPage() {
             </CardContent>
           </Card>
         </div>
-      )}
+      )} */}
 
       {/* Historical Data Analysis */}
       {waterLevelData && (

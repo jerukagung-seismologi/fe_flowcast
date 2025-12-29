@@ -19,19 +19,32 @@ export interface RainfallData {
   monthly: ChartDataPoint[]
 }
 
-export interface ComparisonData {
+export type ComparisonData = {
   devices: string[]
   waterLevel: number[]
   rainfall: number[]
   temperature: number[]
 }
 
-export interface WeatherTrend {
+export type WeatherTrend = {
   parameter: string
   current: number
   change: number
   trend: "up" | "down" | "stable"
   unit: string
+}
+
+// ADD: New data types for the new charts
+export type TemperatureData = {
+  current: { timestamp: string; temperature: number; dewpoint: number }[]
+}
+
+export type HumidityData = {
+  current: { timestamp: string; value: number }[]
+}
+
+export type PressureData = {
+  current: { timestamp: string; value: number }[]
 }
 
 // Generate mock time series data
@@ -119,7 +132,7 @@ export async function fetchRainfallData(userId: string, deviceId?: string): Prom
   }
 }
 
-export async function fetchComparisonData(userId: string): Promise<ComparisonData> {
+export const fetchComparisonData = async (userId: string): Promise<ComparisonData> => {
   try {
     const devices = await fetchDevicesWithSensors(userId)
 
@@ -147,6 +160,54 @@ export async function fetchComparisonData(userId: string): Promise<ComparisonDat
       temperature: [],
     }
   }
+}
+
+// ADD: New fetch functions for the new charts
+
+export const fetchTemperatureData = async (
+  userId: string,
+  deviceId?: string
+): Promise<TemperatureData> => {
+  const data = Array.from({ length: 24 }, (_, i) => {
+    const date = new Date()
+    date.setHours(date.getHours() - (24 - i))
+    return {
+      timestamp: date.toISOString(),
+      temperature: 25 + Math.sin(i / 3) * 3 + Math.random() * 2,
+      dewpoint: 18 + Math.sin(i / 4) * 2 + Math.random(),
+    }
+  })
+  return { current: data }
+}
+
+export const fetchHumidityData = async (
+  userId: string,
+  deviceId?: string
+): Promise<HumidityData> => {
+  const data = Array.from({ length: 24 }, (_, i) => {
+    const date = new Date()
+    date.setHours(date.getHours() - (24 - i))
+    return {
+      timestamp: date.toISOString(),
+      value: 70 + Math.cos(i / 4) * 10 + Math.random() * 5,
+    }
+  })
+  return { current: data }
+}
+
+export const fetchPressureData = async (
+  userId: string,
+  deviceId?: string
+): Promise<PressureData> => {
+  const data = Array.from({ length: 24 }, (_, i) => {
+    const date = new Date()
+    date.setHours(date.getHours() - (24 - i))
+    return {
+      timestamp: date.toISOString(),
+      value: 1010 + Math.sin(i / 6) * 2 + Math.random(),
+    }
+  })
+  return { current: data }
 }
 
 export async function fetchWeatherTrends(userId: string): Promise<WeatherTrend[]> {
