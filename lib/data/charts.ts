@@ -1,4 +1,4 @@
-import { fetchDevicesWithSensors } from "@/lib/data/FetchingData"
+import { fetchDevicesWithSensors } from "@/lib/data/LaravelSensorData"
 
 export interface ChartDataPoint {
   timestamp: string
