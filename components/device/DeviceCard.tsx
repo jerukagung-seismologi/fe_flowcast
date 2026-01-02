@@ -41,7 +41,7 @@ export function DeviceCard({ device, onEdit, onDelete, onGenerateToken }: Device
       id: String(device.id),
       name: device.name,
       location: device.location,
-      registrationDate: device.registrationDate,
+      registrationDate: device.registrationDate, // Pass the original date string
       coordinates: device.coordinates,
       userId: "", // userId is not available in DeviceWithSensors, handle accordingly
       threshold: device.threshold,
@@ -89,7 +89,7 @@ export function DeviceCard({ device, onEdit, onDelete, onGenerateToken }: Device
             <div>
               <div className="font-medium text-gray-800">Koordinat</div>
               <div className="text-xs text-gray-600">
-                {device.coordinates.lat.toFixed(4)}, {device.coordinates.lng.toFixed(4)}
+                {device.coordinates.lat.toFixed(2)}, {device.coordinates.lng.toFixed(2)}
               </div>
             </div>
           </div>

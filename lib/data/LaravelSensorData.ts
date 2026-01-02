@@ -27,7 +27,6 @@ export interface DeviceWithSensors {
   humidity: SensorData
   windSpeed: SensorData
   pressure: SensorData
-  // ADDED: registrationDate and coordinates to match DeviceCard usage
   registrationDate: string
   coordinates: {
     lat: number
@@ -79,6 +78,13 @@ export async function fetchDevicesWithSensors(userId: string): Promise<DeviceWit
       // Logic: Dianggap Online jika update terakhir kurang dari 60 menit yang lalu
       const isOnline = (new Date().getTime() - lastUpdate.getTime()) < (60 * 60 * 1000); 
 
+      const registrationDateValue = item.created_at || new Date().toISOString()
+      const formattedRegistrationDate = new Date(registrationDateValue).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+
       return {
         id: String(item.id_device), // Mapping ID and ensure it's a string
         name: item.name,
@@ -89,7 +95,7 @@ export async function fetchDevicesWithSensors(userId: string): Promise<DeviceWit
         threshold: parseFloat(setting.threshold) || 100,
         
         // ADDED: registrationDate and coordinates
-        registrationDate: item.created_at || new Date().toISOString(),
+        registrationDate: formattedRegistrationDate,
         coordinates: {
           lat: parseFloat(item.latitude) || 0,
           lng: parseFloat(item.longitude) || 0,

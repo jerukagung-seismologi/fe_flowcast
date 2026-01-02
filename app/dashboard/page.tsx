@@ -225,7 +225,7 @@ export default function DashboardPage() {
                 Tidak ada peringatan terbaru
               </div>
             ) : (
-              recentAlerts.map((alert) => (
+              recentAlerts.slice(0, 3).map((alert) => (
                 <div
                   key={alert.id}
                   className="flex items-start space-x-3 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg"
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-800">{alert.message}</p>
                     <p className="text-xs text-gray-600">
-                      {new Date(alert.timestamp).toLocaleString()} • {alert.device}
+                      {new Date(alert.timestamp).toLocaleString()} • {alert.deviceId}
                     </p>
                   </div>
                   <Badge variant="destructive" className="text-xs">
