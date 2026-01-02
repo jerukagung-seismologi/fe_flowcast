@@ -2,7 +2,21 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { CloudRain, TrendingUp, Bell } from "lucide-react"
+import {
+  ChevronsLeft,
+  MenuIcon,
+  Plus,
+  PlusCircle,
+  Search,
+  Settings,
+  Trash,
+  CloudRain,
+  Wind,
+  Gauge,
+  Eye,
+  Bell,
+  TrendingUp
+} from "lucide-react"
 
 export default function LandingPage() {
   const functions = [
@@ -30,8 +44,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <CloudRain className="h-6 w-6 text-white" />
+              <div className="flex items-center gap-x-2">
+                <Link href="/" className="flex items-center gap-x-2">
+                  <img src="/apple-touch-icon.png" alt="logo" className="h-10 w-10" />
+                </Link>
               </div>
               <span className="ml-3 text-xl font-bold text-gray-900">FlowCast</span>
             </div>
@@ -56,12 +72,12 @@ export default function LandingPage() {
             Platform Pemantauan Hidrometeorologi & Banjir
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-8">
-            FlowCast membantu instansi dan tim lapangan memahami kondisi air melalui pemantauan data,
-            analisis tren, dan peringatan dini untuk mendukung keputusan cepat dan akurat.
+            FlowCast membantu instansi atau pemangku kepentingan memahami kondisi aliran sungai melalui pemantauan langsung,
+            analisis tren, dan peringatan dini untuk mendukung peringatan dini bencana.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
+              <Button size="lg" className="bg-green-700 hover:bg-green-800 text-lg px-8 py-3">
                 Mulai Memantau
               </Button>
             </Link>
@@ -118,9 +134,11 @@ export default function LandingPage() {
       <footer className="bg-gray-900 text-white py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center mb-4">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <CloudRain className="h-6 w-6 text-white" />
-            </div>
+              <div className="flex items-center gap-x-2">
+                <Link href="/" className="flex items-center gap-x-2">
+                  <img src="/apple-touch-icon.png" alt="logo" className="h-10 w-10" />
+                </Link>
+              </div>
             <span className="ml-3 text-xl font-bold">FlowCast</span>
           </div>
           <p className="text-gray-400">
