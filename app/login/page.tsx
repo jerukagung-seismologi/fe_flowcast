@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, CheckCircle, XCircle, User, Mail, Lock, Loader2 } from "lucide-react"
+import { Eye, EyeOff, CheckCircle, XCircle, User, Mail, Lock, Loader2, AtSign } from "lucide-react"
 import { signInWithEmail, signUpWithEmail } from "@/lib/FetchingAuth"
 
 interface FormData {
   name: string
+  username: string // Tambahan field Username
   email: string
   password: string
   confirmPassword: string
@@ -21,6 +22,7 @@ interface FormData {
 
 interface FormErrors {
   name?: string
+  username?: string
   email?: string
   password?: string
   confirmPassword?: string
@@ -42,6 +44,7 @@ export default function AuthPage() {
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -61,35 +64,20 @@ export default function AuthPage() {
     let score = 0
     const feedback: string[] = []
 
-    if (password.length >= 8) {
-      score += 1
-    } else {
-      feedback.push("Minimal 8 karakter")
-    }
+    if (password.length >= 8) score += 1
+    else feedback.push("Minimal 8 karakter")
 
-    if (/[a-z]/.test(password)) {
-      score += 1
-    } else {
-      feedback.push("Satu huruf kecil")
-    }
+    if (/[a-z]/.test(password)) score += 1
+    else feedback.push("Satu huruf kecil")
 
-    if (/[A-Z]/.test(password)) {
-      score += 1
-    } else {
-      feedback.push("Satu huruf kapital")
-    }
+    if (/[A-Z]/.test(password)) score += 1
+    else feedback.push("Satu huruf kapital")
 
-    if (/\d/.test(password)) {
-      score += 1
-    } else {
-      feedback.push("Satu angka")
-    }
+    if (/\d/.test(password)) score += 1
+    else feedback.push("Satu angka")
 
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      score += 1
-    } else {
-      feedback.push("Satu karakter spesial")
-    }
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1
+    else feedback.push("Satu karakter spesial")
 
     let color = "text-red-500"
     if (score >= 4) color = "text-green-500"
@@ -103,18 +91,21 @@ export default function AuthPage() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
 
-    // Name validation (only for sign up)
+    // Name validation
     if (isSignUp && !formData.name.trim()) {
       newErrors.name = "Nama lengkap wajib diisi"
-    } else if (isSignUp && formData.name.trim().length < 2) {
-      newErrors.name = "Nama minimal 2 karakter"
+    }
+
+    // Username validation
+    if (isSignUp && !formData.username.trim()) {
+      newErrors.username = "Username wajib diisi"
     }
 
     // Email/Username validation
     if (!formData.email.trim()) {
       newErrors.email = isSignUp ? "Email wajib diisi" : "Username atau email wajib diisi"
     } else if (isSignUp && !validateEmail(formData.email)) {
-      newErrors.email = "Mohon masukkan alamat email yang valid"
+      newErrors.email = "Format email tidak valid"
     }
 
     // Password validation
@@ -127,10 +118,10 @@ export default function AuthPage() {
       }
     }
 
-    // Confirm password validation (only for sign up)
+    // Confirm password validation
     if (isSignUp) {
       if (!formData.confirmPassword) {
-        newErrors.confirmPassword = "Mohon konfirmasi kata sandi Anda"
+        newErrors.confirmPassword = "Konfirmasi kata sandi wajib diisi"
       } else if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = "Kata sandi tidak cocok"
       }
@@ -140,92 +131,55 @@ export default function AuthPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle input changes
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-
-    // Clear errors when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
-    }
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
-  // Handle input blur
   const handleInputBlur = (field: keyof FormData) => {
     setTouched((prev) => ({ ...prev, [field]: true }))
-
-    // Validate individual field on blur
-    const newErrors: FormErrors = {}
-
-    if (field === "email" && isSignUp && formData.email && !validateEmail(formData.email)) {
-      newErrors.email = "Mohon masukkan alamat email yang valid"
-    }
-
-    if (field === "password" && isSignUp && formData.password) {
-      const strength = getPasswordStrength(formData.password)
-      if (strength.score < 3) {
-        newErrors.password = "Kata sandi terlalu lemah"
-      }
-    }
-
-    if (
-      field === "confirmPassword" &&
-      isSignUp &&
-      formData.confirmPassword &&
-      formData.password !== formData.confirmPassword
-    ) {
-      newErrors.confirmPassword = "Kata sandi tidak cocok"
-    }
-
-    setErrors((prev) => ({ ...prev, ...newErrors }))
   }
 
-  // Handle form submission
+  // Handle Submit (Login & Register)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!validateForm()) {
-      return
-    }
+    if (!validateForm()) return
 
     setLoading(true)
     setErrors({})
 
     try {
       if (isSignUp) {
-        // --- LOGIKA DAFTAR (REGISTER) ---
-        // Catatan: Kita belum buat API Register di Laravel, jadi ini akan error kalau dicoba.
-        // Nanti kita buat Controller Register-nya ya.
-        alert("Fitur Daftar belum tersedia di Backend Laravel. Silakan Login dulu pakai akun Admin.")
-        
+        // --- LOGIKA REGISTER ---
+        const { user } = await signUpWithEmail(
+          formData.email,
+          formData.password,
+          formData.name,
+          formData.username
+        )
+        console.log("Register berhasil:", user)
+        router.push("/dashboard") // Auto login setelah register
       } else {
-        // --- LOGIKA MASUK (LOGIN) KE LARAVEL ---
-        const { token, user } = await signInWithEmail(formData.email, formData.password)
-        
+        // --- LOGIKA LOGIN ---
+        const { user } = await signInWithEmail(formData.email, formData.password)
         console.log("Login berhasil:", user)
-        
-        // Redirect ke Dashboard
         router.push("/dashboard")
       }
-
     } catch (error: any) {
-      // Tangkap Error dari Laravel
-      console.error("Login Error:", error)
-      const message = error.message || error.response?.data?.message || "Gagal menghubungi server Laravel"
+      console.error("Auth Error:", error)
+      const message = error.message || "Terjadi kesalahan pada server"
       setErrors({ general: message })
     } finally {
       setLoading(false)
     }
   }
 
-  // Toggle between sign in and sign up
   const toggleMode = () => {
     setIsSignUp(!isSignUp)
-    setFormData({ name: "", email: "", password: "", confirmPassword: "" })
+    setFormData({ name: "", username: "", email: "", password: "", confirmPassword: "" })
     setErrors({})
     setTouched({})
-    setShowPassword(false)
-    setShowConfirmPassword(false)
   }
 
   const passwordStrength = getPasswordStrength(formData.password)
@@ -240,7 +194,7 @@ export default function AuthPage() {
           <CardTitle className="text-2xl font-bold text-gray-900">Flow Cast</CardTitle>
           <CardDescription className="text-gray-600">
             {isSignUp
-              ? "Buat akun Anda untuk mulai memantau kondisi hidrometeorologi dan banjir."
+              ? "Buat akun untuk memantau kondisi hidrometeorologi."
               : "Masuk ke akun Anda untuk mengakses dashboard."}
           </CardDescription>
         </CardHeader>
@@ -279,219 +233,155 @@ export default function AuthPage() {
               </Alert>
             )}
 
-            {/* Name Field (Sign Up Only) */}
+            {/* Field Nama Lengkap (Register Only) */}
             {isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                  Nama Lengkap
-                </Label>
+                <Label htmlFor="name">Nama Lengkap</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="name"
-                    type="text"
-                    placeholder="Masukan Nama Anda"
+                    placeholder="Nama Lengkap"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
-                    onBlur={() => handleInputBlur("name")}
-                    className={`pl-10 ${errors.name ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"}`}
-                    required={isSignUp}
+                    className={`pl-10 ${errors.name ? "border-red-500" : ""}`}
                   />
                 </div>
-                {errors.name && (
-                  <p className="text-sm text-red-600 flex items-center">
-                    <XCircle className="h-3 w-3 mr-1" />
-                    {errors.name}
-                  </p>
-                )}
+                {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
               </div>
             )}
 
-            {/* Email/Username Field */}
+            {/* Field Username (Register Only) */}
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="relative">
+                  <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="username"
+                    placeholder="Username (tanpa spasi)"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    className={`pl-10 ${errors.username ? "border-red-500" : ""}`}
+                  />
+                </div>
+                {errors.username && <p className="text-xs text-red-500">{errors.username}</p>}
+              </div>
+            )}
+
+            {/* Field Email (Login & Register) */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                {isSignUp ? "Email" : "Username atau Email"}
-              </Label>
+              <Label htmlFor="email">{isSignUp ? "Email" : "Email / Username"}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
                   type={isSignUp ? "email" : "text"}
-                  placeholder={isSignUp ? "Masukkan email Anda" : "Masukkan username atau email"}
+                  placeholder={isSignUp ? "email@contoh.com" : "Email atau Username"}
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  onBlur={() => handleInputBlur("email")}
-                  className={`pl-10 ${errors.email ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"}`}
-                  required
+                  className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
                 />
-                {isSignUp && formData.email && validateEmail(formData.email) && (
-                  <CheckCircle className="absolute right-3 top-3 h-4 w-4 text-green-500" />
-                )}
               </div>
-              {errors.email && (
-                <p className="text-sm text-red-600 flex items-center">
-                  <XCircle className="h-3 w-3 mr-1" />
-                  {errors.email}
-                </p>
-              )}
+              {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
             </div>
 
-            {/* Password Field */}
+            {/* Field Password */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                Kata Sandi
-              </Label>
+              <Label htmlFor="password">Kata Sandi</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Masukkan kata sandi Anda"
+                  placeholder="******"
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
-                  onBlur={() => handleInputBlur("password")}
-                  className={`pl-10 pr-10 ${errors.password ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"}`}
-                  required
+                  className={`pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-3 text-gray-400"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-
-              {/* Password Strength Indicator (Sign Up Only) */}
+              
+              {/* Strength Meter (Register Only) */}
               {isSignUp && formData.password && (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          passwordStrength.score >= 4
-                            ? "bg-green-500"
-                            : passwordStrength.score >= 3
-                              ? "bg-yellow-500"
-                              : passwordStrength.score >= 2
-                                ? "bg-orange-500"
-                                : "bg-red-500"
-                        }`}
-                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                      />
-                    </div>
-                    <span className={`text-xs font-medium ${passwordStrength.color}`}>
-                      {passwordStrength.score >= 4
-                        ? "Kuat"
-                        : passwordStrength.score >= 3
-                          ? "Baik"
-                          : passwordStrength.score >= 2
-                            ? "Cukup"
-                            : "Lemah"}
-                    </span>
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        passwordStrength.score >= 4 ? "bg-green-500" :
+                        passwordStrength.score >= 3 ? "bg-yellow-500" : "bg-red-500"
+                      }`}
+                      style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                    />
                   </div>
-                  {passwordStrength.feedback.length > 0 && (
-                    <div className="text-xs text-gray-600">
-                      <p>Kata sandi membutuhkan:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        {passwordStrength.feedback.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <span className={`text-[10px] ${passwordStrength.color}`}>
+                    {passwordStrength.score >= 4 ? "Kuat" : passwordStrength.score >= 3 ? "Baik" : "Lemah"}
+                  </span>
                 </div>
               )}
-
-              {errors.password && (
-                <p className="text-sm text-red-600 flex items-center">
-                  <XCircle className="h-3 w-3 mr-1" />
-                  {errors.password}
-                </p>
-              )}
+              
+              {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
             </div>
 
-            {/* Confirm Password Field (Sign Up Only) */}
+            {/* Field Confirm Password (Register Only) */}
             {isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  Konfirmasi Kata Sandi
-                </Label>
+                <Label htmlFor="confirmPassword">Konfirmasi Kata Sandi</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Konfirmasi kata sandi Anda"
+                    placeholder="******"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    onBlur={() => handleInputBlur("confirmPassword")}
-                    className={`pl-10 pr-10 ${errors.confirmPassword ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"}`}
-                    required={isSignUp}
+                    className={`pl-10 pr-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 text-gray-400"
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
-                  {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                    <CheckCircle className="absolute right-10 top-3 h-4 w-4 text-green-500" />
-                  )}
                 </div>
-                {errors.confirmPassword && (
-                  <p className="text-sm text-red-600 flex items-center">
-                    <XCircle className="h-3 w-3 mr-1" />
-                    {errors.confirmPassword}
-                  </p>
-                )}
+                {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
               </div>
             )}
 
-            {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full bg-blue-600 hover:bg-blue-700"
               disabled={loading}
             >
               {loading ? (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center">
                   <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                  {isSignUp ? "Membuat Akun..." : "Masuk..."}
+                  Memproses...
                 </div>
-              ) : isSignUp ? (
-                "Buat Akun"
-              ) : (
-                "Masuk"
-              )}
+              ) : isSignUp ? "Buat Akun" : "Masuk"}
             </Button>
           </form>
 
-          {/* Additional Options */}
+          {/* Footer Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              {isSignUp ? "Sudah punya akun?" : "Belum punya akun?"}{" "}
+              {isSignUp ? "Sudah punya akun? " : "Belum punya akun? "}
               <button
                 type="button"
                 onClick={toggleMode}
-                className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                className="text-blue-600 font-medium hover:underline"
               >
                 {isSignUp ? "Masuk di sini" : "Daftar di sini"}
               </button>
             </p>
           </div>
-
-          {!isSignUp && (
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                className="text-sm text-gray-600 hover:text-gray-700 hover:underline transition-colors"
-              >
-                Lupa Kata Sandi?
-              </button>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
