@@ -3,17 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
-  ChevronsLeft,
-  MenuIcon,
-  Plus,
-  PlusCircle,
-  Search,
-  Settings,
-  Trash,
   CloudRain,
-  Wind,
-  Gauge,
-  Eye,
   Bell,
   TrendingUp
 } from "lucide-react"
@@ -50,16 +40,6 @@ export default function LandingPage() {
                 </Link>
               </div>
               <span className="ml-3 text-xl font-bold text-gray-900">FlowCast</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
-                  Masuk
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button className="bg-blue-600 hover:bg-blue-700">Mulai</Button>
-              </Link>
             </div>
           </div>
         </div>
