@@ -193,7 +193,7 @@ export default function DashboardPage() {
                         Online
                       </Badge>
                       <div className="text-right">
-                        <div className="text-sm font-medium">{device.waterLevel?.value.toFixed(1)}m</div>
+                        <div className="text-sm font-medium">{device.waterLevel?.value.toFixed(1)}cm</div>
                         <div className="flex items-center">
                           {getTrendIcon(device.waterLevel?.trend, "h-3 w-3")}
                           <span className="text-xs ml-1">

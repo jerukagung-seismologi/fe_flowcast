@@ -100,11 +100,11 @@ export default function LandingPage() {
             Fokus pada informasi yang Anda butuhkan
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            Masuk untuk melihat data, tren, dan peringatan yang relevan di wilayah Anda.
+            Masuk untuk melihat data, tren, dan peringatan di wilayah Anda.
           </p>
           <Link href="/login">
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
-              Masuk & Akses FlowCast
+              Akses FlowCast
             </Button>
           </Link>
         </div>
@@ -125,7 +125,7 @@ export default function LandingPage() {
             Pemantauan hidrometeorologi sederhana: data, tren, dan peringatan untuk keputusan yang lebih cepat.
           </p>
           <div className="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} FlowCast. Hak Cipta Dilindungi.</p>
+            <p>&copy; {new Date().getFullYear()} FlowCast Jerukagung Seismologi. Hak Cipta Dilindungi Undang-undang.</p>
           </div>
         </div>
       </footer>
