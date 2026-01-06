@@ -14,7 +14,7 @@ import { signInWithEmail, signUpWithEmail } from "@/lib/FetchingAuth"
 
 interface FormData {
   name: string
-  username: string // Tambahan field Username
+  username: string
   email: string
   password: string
   confirmPassword: string
@@ -112,6 +112,7 @@ export default function AuthPage() {
     if (!formData.password) {
       newErrors.password = "Kata sandi wajib diisi"
     } else if (isSignUp) {
+      // Validasi ketat HANYA saat Sign Up
       const strength = getPasswordStrength(formData.password)
       if (strength.score < 3) {
         newErrors.password = "Kata sandi terlalu lemah"
@@ -159,7 +160,7 @@ export default function AuthPage() {
           formData.username
         )
         console.log("Register berhasil:", user)
-        router.push("/dashboard") // Auto login setelah register
+        router.push("/dashboard")
       } else {
         // --- LOGIKA LOGIN ---
         const { user } = await signInWithEmail(formData.email, formData.password)
@@ -308,21 +309,38 @@ export default function AuthPage() {
                 </button>
               </div>
               
-              {/* Strength Meter (Register Only) */}
-              {isSignUp && formData.password && (
-                <div className="flex items-center space-x-2 mt-1">
-                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        passwordStrength.score >= 4 ? "bg-green-500" :
-                        passwordStrength.score >= 3 ? "bg-yellow-500" : "bg-red-500"
-                      }`}
-                      style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                    />
+              {/* Strength Meter (NOW SHOWS ON BOTH LOGIN & REGISTER) */}
+              {formData.password && (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 mt-1">
+                    <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          passwordStrength.score >= 4 ? "bg-green-500" :
+                          passwordStrength.score >= 3 ? "bg-yellow-500" :
+                          passwordStrength.score >= 2 ? "bg-orange-500" : "bg-red-500"
+                        }`}
+                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                      />
+                    </div>
+                    <span className={`text-[10px] ${passwordStrength.color}`}>
+                      {passwordStrength.score >= 4 ? "Kuat" : 
+                       passwordStrength.score >= 3 ? "Baik" : 
+                       passwordStrength.score >= 2 ? "Cukup" : "Lemah"}
+                    </span>
                   </div>
-                  <span className={`text-[10px] ${passwordStrength.color}`}>
-                    {passwordStrength.score >= 4 ? "Kuat" : passwordStrength.score >= 3 ? "Baik" : "Lemah"}
-                  </span>
+                  
+                  {/* Feedback List (Kurang angka, huruf besar, dll) */}
+                  {passwordStrength.feedback.length > 0 && (
+                    <div className="text-xs text-gray-500">
+                      <p className="mb-1">Saran keamanan:</p>
+                      <ul className="list-disc list-inside space-y-0.5">
+                        {passwordStrength.feedback.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )}
               
