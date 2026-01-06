@@ -311,7 +311,7 @@ export default function DashboardPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Tinggi Air:</span>
                     <div className="flex items-center">
-                      <span className="font-medium">{device.waterLevel?.value.toFixed(1)}m</span>
+                      <span className="font-medium">{device.waterLevel?.value.toFixed(1)} cm</span>
                       {getTrendIcon(device.waterLevel?.trend, "h-3 w-3 ml-1")}
                     </div>
                   </div>
