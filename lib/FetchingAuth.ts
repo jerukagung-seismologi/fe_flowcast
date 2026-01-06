@@ -5,7 +5,8 @@ export interface UserProfile {
   id: number
   username: string
   email: string
-  displayName?: string // Kita konsisten pakai displayName
+  displayName?: string
+  name?: string // Jaga-jaga jika backend kirim 'name'
   role: "admin" | "user"
   signed_in?: string | null
   created_at: string
@@ -22,7 +23,8 @@ export interface LoginResponse {
   }
 }
 
-// REGISTER: Sign up with email, password, username, and displayName
+// --- AUTHENTICATION ---
+
 export const signUpWithEmail = async (
   email: string,
   password: string,
@@ -30,17 +32,14 @@ export const signUpWithEmail = async (
   username: string,
 ): Promise<{ token: string; user: UserProfile }> => {
   try {
-    // Kirim data sesuai yang diminta ApiAuthController Laravel
     const response = await axios.post<LoginResponse>(`${API_BASE_URL}/register`, {
       username,
       email,
       password,
-      displayName, // <-- Kirim sebagai displayName
+      displayName,
     })
 
     const { access_token, user } = response.data.data
-    
-    // Save to localStorage
     localStorage.setItem("auth_token", access_token)
     localStorage.setItem("user_info", JSON.stringify(user))
 
@@ -51,39 +50,30 @@ export const signUpWithEmail = async (
   }
 }
 
-// LOGIN: Sign in with email/username and password
 export const signInWithEmail = async (
   username: string,
   password: string,
 ): Promise<{ token: string; user: UserProfile }> => {
   try {
-    console.log("Attempting login to:", `${API_BASE_URL}/login`)
-    
     const response = await axios.post<LoginResponse>(`${API_BASE_URL}/login`, {
-      username, // Backend kita mengharapkan key 'username' (meski isinya email)
+      username,
       password,
     })
 
     const { access_token, user } = response.data.data
-    
-    // Save to localStorage
     localStorage.setItem("auth_token", access_token)
     localStorage.setItem("user_info", JSON.stringify(user))
 
     return { token: access_token, user }
   } catch (error: any) {
-    console.error("Login error details:", error)
-    
     if (error.code === "ERR_NETWORK") {
-      throw new Error("Tidak dapat terhubung ke server Laravel. Pastikan server berjalan.")
+      throw new Error("Tidak dapat terhubung ke server Laravel.")
     }
-    
     const message = error.response?.data?.message || error.message || "Login gagal"
     throw new Error(message)
   }
 }
 
-// Sign out
 export const signOutUser = async (): Promise<void> => {
   try {
     const token = localStorage.getItem("auth_token")
@@ -92,29 +82,98 @@ export const signOutUser = async (): Promise<void> => {
         headers: { Authorization: `Bearer ${token}` }
       })
     }
-    localStorage.removeItem("auth_token")
-    localStorage.removeItem("user_info")
-  } catch (error: any) {
-    localStorage.removeItem("auth_token")
-    localStorage.removeItem("user_info")
-    throw new Error("Logout failed")
-  }
-}
-
-// Get user profile
-export const getUserProfile = async (): Promise<UserProfile | null> => {
-  try {
-    const token = localStorage.getItem("auth_token")
-    const userInfo = localStorage.getItem("user_info")
-    
-    if (!token || !userInfo) return null
-    return JSON.parse(userInfo) as UserProfile
   } catch (error) {
-    console.error("Error getting user profile:", error)
-    return null
+    console.error("Logout error", error)
+  } finally {
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_info")
   }
 }
 
 export const isAuthenticated = (): boolean => {
   return !!localStorage.getItem("auth_token")
+}
+
+// --- USER PROFILE MANAGEMENT ---
+
+// 1. Get Profile
+export const getUserProfile = async (): Promise<UserProfile | null> => {
+  try {
+    const token = localStorage.getItem("auth_token")
+    // Prioritaskan ambil dari API untuk data terbaru
+    if (token) {
+       try {
+         const response = await axios.get(`${API_BASE_URL}/user`, {
+           headers: { Authorization: `Bearer ${token}` }
+         });
+         // Update local storage dengan data terbaru
+         localStorage.setItem("user_info", JSON.stringify(response.data));
+         return response.data as UserProfile;
+       } catch (e) {
+         // Fallback ke local storage jika API gagal/offline
+         console.warn("Failed to fetch fresh profile, using local data");
+       }
+    }
+
+    const userInfo = localStorage.getItem("user_info")
+    if (!userInfo) return null
+    return JSON.parse(userInfo) as UserProfile
+  } catch (error) {
+    return null
+  }
+}
+
+// 2. Update Profile Data (DisplayName & Email)
+export const updateUserProfileData = async (displayName: string, email: string): Promise<void> => {
+  const token = localStorage.getItem("auth_token")
+  if (!token) throw new Error("Unauthorized")
+
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/user/profile`, 
+      { displayName, email },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    
+    // Update data di local storage agar UI langsung berubah
+    const currentUser = JSON.parse(localStorage.getItem("user_info") || "{}")
+    const updatedUser = { ...currentUser, displayName, email }
+    localStorage.setItem("user_info", JSON.stringify(updatedUser))
+    
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to update profile")
+  }
+}
+
+// 3. Update Password
+export const updateUserPassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  const token = localStorage.getItem("auth_token")
+  if (!token) throw new Error("Unauthorized")
+
+  try {
+    await axios.put(
+      `${API_BASE_URL}/user/password`,
+      { current_password: currentPassword, new_password: newPassword },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to update password")
+  }
+}
+
+// 4. Delete Account
+export const deleteUserAccount = async (): Promise<void> => {
+  const token = localStorage.getItem("auth_token")
+  if (!token) throw new Error("Unauthorized")
+
+  try {
+    await axios.delete(`${API_BASE_URL}/user/account`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    // Bersihkan sesi setelah hapus akun
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_info")
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to delete account")
+  }
 }
