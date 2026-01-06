@@ -151,58 +151,61 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* Edit Profile */}
-      <div className="rounded-lg bg-white p-6 shadow-md">
-        <h2 className="mb-4 text-xl font-bold">Edit Profile</h2>
-        <form onSubmit={handleProfileUpdate} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
-            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
-          </div>
-          {editStatus && <p className={`text-sm ${editStatus.type === "success" ? "text-green-600" : "text-red-600"}`}>{editStatus.message}</p>}
-          <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Save Changes</button>
-        </form>
-      </div>
+      {/* GRID CONTAINER: Edit Profile & Change Password Bersebelahan */}
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        {/* Edit Profile */}
+        <div className="rounded-lg bg-white p-6 shadow-md h-full">
+          <h2 className="mb-4 text-xl font-bold">Edit Profile</h2>
+          <form onSubmit={handleProfileUpdate} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
+              <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+              <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border" />
+            </div>
+            {editStatus && <p className={`text-sm ${editStatus.type === "success" ? "text-green-600" : "text-red-600"}`}>{editStatus.message}</p>}
+            <button type="submit" className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors">Save Changes</button>
+          </form>
+        </div>
 
-      {/* Change Password */}
-      <div className="rounded-lg bg-white p-6 shadow-md">
-        <h2 className="mb-4 text-xl font-bold">Change Password</h2>
-        <form onSubmit={handlePasswordUpdate} className="space-y-4">
-          <div>
-            <label htmlFor="currentPassword">Current Password</label>
-            <input type="password" id="currentPassword" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-          </div>
-          <div>
-            <label htmlFor="newPassword">New Password</label>
-            <input type="password" id="newPassword" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-          </div>
-          <div>
-            <label htmlFor="confirmPassword">Confirm New Password</label>
-            <input type="password" id="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
-          </div>
-          {passwordStatus && <p className={`text-sm ${passwordStatus.type === "success" ? "text-green-600" : "text-red-600"}`}>{passwordStatus.message}</p>}
-          <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Update Password</button>
-        </form>
+        {/* Change Password */}
+        <div className="rounded-lg bg-white p-6 shadow-md h-full">
+          <h2 className="mb-4 text-xl font-bold">Change Password</h2>
+          <form onSubmit={handlePasswordUpdate} className="space-y-4">
+            <div>
+              <label htmlFor="currentPassword">Current Password</label>
+              <input type="password" id="currentPassword" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" />
+            </div>
+            <div>
+              <label htmlFor="newPassword">New Password</label>
+              <input type="password" id="newPassword" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" />
+            </div>
+            <div>
+              <label htmlFor="confirmPassword">Confirm New Password</label>
+              <input type="password" id="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" />
+            </div>
+            {passwordStatus && <p className={`text-sm ${passwordStatus.type === "success" ? "text-green-600" : "text-red-600"}`}>{passwordStatus.message}</p>}
+            <button type="submit" className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors">Update Password</button>
+          </form>
+        </div>
       </div>
 
       {/* Danger Zone */}
       <div className="rounded-lg border-2 border-dashed border-red-500 bg-white p-6 shadow-md">
         <h2 className="mb-4 text-xl font-bold text-red-600">Danger Zone</h2>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <p className="font-semibold">Delete this account</p>
-            <p className="text-sm text-gray-600">Once you delete your account, there is no going back. Please be certain.</p>
+            <p className="text-sm text-gray-600">Once you delete your account, there is no going back.</p>
           </div>
-          <button onClick={handleDeleteAccount} className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700">Delete Account</button>
+          <button onClick={handleDeleteAccount} className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition-colors">Delete Account</button>
         </div>
         {deleteError && <p className="mt-2 text-sm text-red-600">{deleteError}</p>}
       </div>
 
-      <button onClick={handleSignOut} className="w-full rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">Sign Out</button>
+      <button onClick={handleSignOut} className="w-full rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 transition-colors">Sign Out</button>
     </div>
   )
 }

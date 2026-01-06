@@ -11,7 +11,6 @@ import { Sidebar } from "@/components/dashboard/Sidebar"
 import { Topbar } from "@/components/dashboard/Topbar"
 import type { NavigationItem } from "@/components/dashboard/navigation"
 import Loading from "@/app/loading"
-const inter = Inter({ subsets: ["latin"] });
 
 export default function DashboardLayout({
   children,
